@@ -4,6 +4,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class OrderTaskRunInfo implements Serializable,Cloneable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8350616240916405101L;
+
 	/** 订单编号. */
 	private String orderId;
 
@@ -18,6 +23,10 @@ public class OrderTaskRunInfo implements Serializable,Cloneable {
 	private String flowId;
 
 	private long expireTime;
+	/**
+	 * 运行时间
+	 */
+	private long runTime;
 	/**
 	 * 运行次数
 	 */
@@ -79,6 +88,14 @@ public class OrderTaskRunInfo implements Serializable,Cloneable {
 		this.runtimes = runtimes;
 	}
 
+	public long getRunTime() {
+		return runTime;
+	}
+
+	public void setRunTime(long runTime) {
+		this.runTime = runTime;
+	}
+
 	@Override
 	public String toString() {
 		return "OrderTaskRunInfo [orderId=" + orderId + ", catetory=" + catetory + ", currentStep=" + currentStep
@@ -87,6 +104,15 @@ public class OrderTaskRunInfo implements Serializable,Cloneable {
 	}
 
 	
-	
+	@Override  
+    public OrderTaskRunInfo clone()  {  
+        try {
+			return (OrderTaskRunInfo)super.clone();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  
+        return null;
+    }  
 	
 }

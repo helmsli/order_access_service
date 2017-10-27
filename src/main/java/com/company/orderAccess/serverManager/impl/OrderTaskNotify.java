@@ -86,7 +86,7 @@ public class OrderTaskNotify implements  InitializingBean{
 			
 			try {
 				
-				result  = template.getForObject(newTalkNotifyUrl + "/" + orderTaskInfo.getCatetory() + "/" +orderTaskInfo.getOrderId() + "/" +orderTaskInfo.getCurrentStep()+ "/runOrderTask"  , ProcessResult.class);
+				result  = template.postForObject(newTalkNotifyUrl + "/" + orderTaskInfo.getCatetory() + "/" +orderTaskInfo.getOrderId() + "/" +orderTaskInfo.getCurrentStep()+ "/runOrderTask"  ,orderTaskInfo, ProcessResult.class);
 				if(result.getRetCode()!=OrderAccessConst.RESULT_Success)
 				{
 					
