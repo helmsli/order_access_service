@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<!-- Plugin Css -->
+<link href="http://g.alicdn.com/de/prismplayer/2.0.1/skins/default/aliplayer-min.css" rel="stylesheet"/>
+</head>
+<body>
+    //播放器容器
+    <div id='J_prismPlayer' class='prism-player'>   <!-- prism-player为h5播放器皮肤的钩子类名，请务必加上 -->
+    //播放器初始化代码
+   
+</body>
+<script src="../../js/jquery/jquery-3.2.1.min.js"></script>
+<script src="../../js/test/ajax.js"></script>
+ <script src="../../js/test/video/video.js"></script>    
+<script src="http://g.alicdn.com/de/prismplayer/2.0.1/aliplayer-h5-min.js"></script>
+<script>
+
+</script>
+ <script>
+ var player;
+ /*
+          var player = new Aliplayer({
+              id: "J_prismPlayer", // 容器id
+              vid : '',//媒体转码服务的媒体Id
+              playauth : '',//播放鉴权 [playauth参照](https://help.aliyun.com/document_detail/52833.html?spm=5176.doc51236.6.627.5gm5gf)
+              width: "640px",
+              height: "480px"
+          });
+          player.on('ready',function(e) {
+        	  console.log("**************************");
+        	  let vodId = "c430dd8534e04ba8a8acc63931893304";
+        	  let vodPlayInfo={
+        			  "videoId":vodId
+        	  };
+        	  ajaxReqPlayVideo(vodPlayInfo,function callback(retCode,playAuth){
+        		  if(retCode==0)
+        		  {
+        			  reloaduserPlayInfoAndVidRequestMts(videoId,playAuth);
+        		  }
+        		  else
+        		  {
+        			alert("get playAuth error");  
+        		  }
+        		  
+        	  },"http://localhost:9100/vod/requestPlayAuth");
+        	  
+          });
+          
+          var timer = null;
+          function getTime()
+          { 
+             var currentTime = player.getCurrentTime();
+             //to do
+             timer = setTimeout(getTime,1000);
+          }
+          //清除定时器
+          function clear()
+          {
+             if(timer)
+             {
+                clearTimeout(timer);
+                timer = null;
+             }
+          }
+
+          player.on('ended',function  (e) {
+            clear();
+           });
+
+          player.on('pause',function  (e) {
+            clear();
+           });
+
+          player.on('error',function  (e) {
+            clear();
+           });
+          */
+          let vodId = "c430dd8534e04ba8a8acc63931893304";
+    	  let vodPlayInfo={
+    			  "videoId":vodId
+    	  };
+
+          ajaxReqPlayVideo(vodPlayInfo,function callback(retCode,playAuth){
+    		  if(retCode==0)
+    		  {
+    			  console.log("#######################");
+    			  //reloaduserPlayInfoAndVidRequestMts(videoId,playAuth);
+    			  player = new Aliplayer({
+    	              id: "J_prismPlayer", // 容器id
+    	              vid : playAuth.videoId,//媒体转码服务的媒体Id
+    	              playauth : playAuth.playAuth,//播放鉴权 [playauth参照](https://help.aliyun.com/document_detail/52833.html?spm=5176.doc51236.6.627.5gm5gf)
+    	              width: "640px",
+    	              height: "480px"
+    	          });
+    		  }
+    		  else
+    		  {
+    			alert("get playAuth error");  
+    		  }
+    		  
+    	  },"http://localhost:9100/vod/requestPlayAuth");
+    	  
+     </script>
+</html>

@@ -1,0 +1,2 @@
+
+mvn install:install-file -Dfile="E:\Users\helmsli\herui\order_db\export\nnl-commons-1.9.1.jar" -DgroupId=com.xinwei.nnl -DartifactId=nnl-commons -Dversion=1.9.1 -Dpackaging=jar
