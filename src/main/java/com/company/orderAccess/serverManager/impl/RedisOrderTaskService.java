@@ -76,12 +76,73 @@ public class RedisOrderTaskService {
     	this.redisTemplate.opsForList().rightPush(key, orderTaskInfo);
 		return true;
     }
+    
+    /**
+     * 如果任务成功，删除调度队列中的重做任务；
+     * @param orderTaskRunInfo
+     * @return
+     */
+    public boolean delRedoTask(OrderTaskRunInfo orderTaskRunInfo)
+    {
+    	try {
+			String keyOrderRedo = getOrderTaskRedoKey(orderTaskQueneName,orderTaskRunInfo.getCatetory(),orderTaskRunInfo.getCurrentStep());
+			redisTemplate.opsForHash().delete(keyOrderRedo, getOrderTaskKey(orderTaskRunInfo));
+			return true;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return false;
+    }
+    
+    /**
+     * 重做超时调度的任务
+     * @param orderTaskInfo
+     * @return
+     */
+    public boolean redoTimeoutTask(String category,String step,int numbers)
+    {
+    	String key = this.getOrderTaskQueneKey(orderTaskQueneName,category,step);
+    	String keyOrderRedo = getOrderTaskRedoKey(orderTaskQueneName,category,step);
+    	List<String> timeOutRedoList = new ArrayList<String>();
+		Map<Object, Object> redoMap = redisTemplate.opsForHash().entries(keyOrderRedo);
+		int i=0;
+		for (Map.Entry<Object, Object> entry : redoMap.entrySet()) {
+			i++;
+			if(i>=numbers)
+			{
+				break;
+			}
+			try {
+				OrderTaskRunInfo orderTaskRunInfo =(OrderTaskRunInfo)entry.getValue();
+				if(orderTaskRunInfo!=null && System.currentTimeMillis() - orderTaskRunInfo.getExpireTime()<0)
+				{
+					this.redisTemplate.opsForList().rightPush(key, orderTaskRunInfo);
+				}
+				else if(orderTaskRunInfo!=null)
+				{
+					timeOutRedoList.add(getOrderTaskKey(orderTaskRunInfo));
+				}
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		//删除超时的任务
+		for( i=0;i<timeOutRedoList.size();i++)
+		{
+			redisTemplate.opsForHash().delete(keyOrderRedo, timeOutRedoList.get(i));
+		}
+		timeOutRedoList.clear();
+		return true;
+    }
+    
     /**
      * 从队列中获取需要调度的任务
      * @param category -- 订单类型
      * @param step   -- 步骤
      * @param numbers  -- 获取多少个任务
-     * @return
+     * @return  --null -not get lock
      */
     public List<OrderTaskRunInfo> schedulerOrderTaskToQuene(String category,String step,int numbers)
     {
@@ -93,7 +154,8 @@ public class RedisOrderTaskService {
     		requestTime = this.getCommonLock(lockKey);
 			if(requestTime==0)
 			{
-				return retLists;
+				//没有抢到锁，返回空
+				return null;
 			}
 			
 			String key = this.getOrderTaskQueneKey(orderTaskQueneName,category,step);
@@ -211,10 +273,7 @@ public class RedisOrderTaskService {
               e.printStackTrace();
             return 0;  
         }  
-        finally
-        {
-        	
-        }
+        
     }
 
 	public void releaseCommonLock(String lockKey,long requestTime)  

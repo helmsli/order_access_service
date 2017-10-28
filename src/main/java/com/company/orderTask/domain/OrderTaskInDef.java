@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.springframework.beans.factory.annotation.Value;
 
-public class OrderTalkInDef implements Serializable {
+public class OrderTaskInDef implements Serializable {
 	
 	
 	//定时执行
