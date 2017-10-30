@@ -12,6 +12,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.company.orderTask.domain.OrderTaskRunInfo;
+import com.xinwei.orderDb.domain.OrderMain;
 @Service("redisOrderTaskService")
 public class RedisOrderTaskService {
 	
@@ -144,14 +145,14 @@ public class RedisOrderTaskService {
      * @param numbers  -- 获取多少个任务
      * @return  --null -not get lock
      */
-    public List<OrderTaskRunInfo> schedulerOrderTaskToQuene(String category,String step,int numbers)
+    public List<OrderTaskRunInfo> getSchedulerOrderTasks(String category,String step,int numbers)
     {
     	long requestTime = 0;
     	List<OrderTaskRunInfo> retLists= new ArrayList<OrderTaskRunInfo>();
         String lockKey = getOrderTaskLockKey(orderTaskQueneName,category,step);
     	//全局加锁
     	try {
-    		requestTime = this.getCommonLock(lockKey);
+    		requestTime = this.getCommonLock(lockKey,30);
 			if(requestTime==0)
 			{
 				//没有抢到锁，返回空
@@ -217,7 +218,7 @@ public class RedisOrderTaskService {
 	 * @param lockKey
 	 * @return  0--失败
 	 */
-	public long  getCommonLock(String lockKey){  
+	public long  getCommonLock(String lockKey,int lockSeconds){  
 		try{  
             
             long startTime = System.currentTimeMillis();  
@@ -226,7 +227,7 @@ public class RedisOrderTaskService {
             	{
 	            	if(redisTemplate.opsForValue().setIfAbsent(lockKey,String.valueOf(startTime))){  
 	            		startTime = System.currentTimeMillis(); 
-	            		redisTemplate.opsForValue().set(lockKey,String.valueOf(startTime),30,TimeUnit.SECONDS);  
+	            		redisTemplate.opsForValue().set(lockKey,String.valueOf(startTime),lockSeconds,TimeUnit.SECONDS);  
 	                	return startTime;  
 	                }
 	            	//如果是第一次进来，最好判断一下是否老的已经过期，否则会死锁
@@ -245,7 +246,7 @@ public class RedisOrderTaskService {
 								e.printStackTrace();
 							}
 		            		//如果没有获取到，并且已经超时
-		                    if(System.currentTimeMillis() - requestTimeL > 30000){  
+		                    if(System.currentTimeMillis() - requestTimeL > lockSeconds*1000){  
 		                    	redisTemplate.delete(lockKey);
 		                    	continue;
 		                    }		
@@ -263,11 +264,11 @@ public class RedisOrderTaskService {
 	            	}
             	}
                 //如果没有获取到，并且已经超时
-                if(System.currentTimeMillis() - startTime > 30000){  
+                if(System.currentTimeMillis() - startTime > lockSeconds*1000){  
                     return 0;  
                 }  
                 //延迟一段时间
-                Thread.sleep(1000);  
+                Thread.sleep(300);  
             }  
         }catch (Exception e){  
               e.printStackTrace();
@@ -291,4 +292,36 @@ public class RedisOrderTaskService {
 		}
 	}
 	
+	
+	protected String getOrderMainKey(String category,String orderid)
+	{
+		return "orderMain:"+category+":" + orderid;
+	}
+	
+	public String getOrderMainLockKey(String category,String orderid)
+	{
+		return "orderLock:"+category+":" + orderid;
+	}
+	
+	/**
+	 * 将orderMain放入队列
+	 * @param orderMain
+	 * @return
+	 */
+	public boolean putOrderMainToCache(OrderMain orderMain)
+	{
+		String orderKey = getOrderMainKey(orderMain.getCatetory(),orderMain.getOrderId());
+		this.redisTemplate.opsForValue().set(orderKey, orderMain);
+		return true;
+	}
+	
+	/**
+	 * 
+	 */
+	public OrderMain getOrderMainFromCache(String category,String orderId)
+	{
+		String orderKey = getOrderMainKey(category,orderId);
+		OrderMain orderMain = (OrderMain)this.redisTemplate.opsForValue().get(orderKey);
+		return orderMain;
+	}
 }

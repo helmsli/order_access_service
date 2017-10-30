@@ -133,9 +133,14 @@ public class OrderDefService {
 	 * @param category
 	 * @return
 	 */
-	protected String getOrderStepDefKey(String category)
+	protected String getOrderStepDefKey(String category,String step)
 	{
-		return Prefix_key_OrderStepDef + ":" + category;
+		return Prefix_key_OrderStepDef + ":" + category + ":" + step; 
+	}
+	
+	protected String getOrderAllStepDefKey(String category)
+	{
+		return getOrderStepDefKey(category,"__@#$"); 
 	}
 	
 	/**
@@ -147,7 +152,7 @@ public class OrderDefService {
 	{
 		ProcessResult processResult=null;
 		try {
-			String key = getOrderStepDefKey(category);
+			String key = getOrderAllStepDefKey(category);
 			if(orderDefList.containsKey(key))
 			{
 				
@@ -168,6 +173,30 @@ public class OrderDefService {
 		return null;
 	}
 	
+	private OrderFlowStepdef getOrderStepDefFromCache(String category,String stepId)
+	{
+		ProcessResult processResult=null;
+		try {
+			String key = getOrderStepDefKey(category,stepId);
+			if(orderDefList.containsKey(key))
+			{
+				
+				processResult=this.orderDefList.get(key);
+				if(!this.isCacheExpired(processResult))
+				{
+					OrderFlowStepdef orderFlowStepdef =(OrderFlowStepdef)processResult.getResponseInfo(); 
+					return orderFlowStepdef;
+				}
+			}
+			//String jsonStr  =(String)redisTemplate.opsForValue().get(key);
+			//List<OrderFlowStepdef> orderFlowStepdefs = JsonUtil.fromJson(jsonStr,new TypeToken<List<OrderFlowStepdef>>(){}.getType()); 
+			//return orderFlowStepdefs;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
 	/**
 	 * 将流程步骤定义放入cache
 	 * @param category
@@ -177,14 +206,26 @@ public class OrderDefService {
 	public int putOrderSetpDefToCache(String category,List<OrderFlowStepdef> orderFlowStepdefs)
 	{
 		try {
-			String key = getOrderStepDefKey(category);
+			String key = getOrderAllStepDefKey(category);
 			String listStr = JsonUtil.toJson(orderFlowStepdefs);
-			
+			long nowTime =System.currentTimeMillis();
 			//放入本地缓存
 			ProcessResult processResult = new ProcessResult();
-			processResult.setRetCode((int)(System.currentTimeMillis()/(this.MillisPerDay)));
+			processResult.setRetCode((int)(nowTime/(this.MillisPerDay)));
 			processResult.setResponseInfo(orderFlowStepdefs);
 			orderDefList.put(key, processResult);
+			
+			for(int i=0;i<orderFlowStepdefs.size();i++)
+			{
+				OrderFlowStepdef orderFlowStepdef=orderFlowStepdefs.get(i);
+				key = getOrderStepDefKey(category,orderFlowStepdef.getStepId());
+				processResult = new ProcessResult();
+				processResult.setRetCode((int)(nowTime/(this.MillisPerDay)));
+				processResult.setResponseInfo(orderFlowStepdef);
+				orderDefList.put(key, processResult);
+				
+			}
+			
 			//放入redis，不能放入redis，因为需要在web侧进行路由，不同的ownerkey路由给不同的应用服务器，以支持不同的orderIDDef；
 			
 			//redisTemplate.opsForValue().set(key, listStr,7,TimeUnit.DAYS);
@@ -216,7 +257,6 @@ public class OrderDefService {
 	{
 		try {
 			ProcessResult result = new ProcessResult();
-			
 			result  = template.getForObject(httpOrderDbDefUrl + "/" +  category+ "/" + ownerKey + "/getOrderDef" , ProcessResult.class);
 			return result;
 		} catch (Exception e) {
@@ -300,6 +340,25 @@ public class OrderDefService {
 		
 		}
 		return lists;
+	}
+	
+	public OrderFlowStepdef getOrderStepDef(String category,String stepId,String ownerKey)
+	{
+		OrderFlowStepdef orderFlowStepdef= getOrderStepDefFromCache(category,stepId);
+		if(orderFlowStepdef==null)
+		{
+			ProcessResult ProcessResult = selectFlowStepDef(category,ownerKey);
+			if(ProcessResult.getRetCode()==OrderAccessConst.RESULT_Success)
+			{
+				List<OrderFlowStepdef> lists = (List<OrderFlowStepdef>)ProcessResult.getResponseInfo();
+				
+				putOrderSetpDefToCache(category, lists);
+				 orderFlowStepdef= getOrderStepDefFromCache(category,stepId);
+					
+			}
+		
+		}
+		return orderFlowStepdef;
 	}
 	public String getHttpOrderDbDefUrl() {
 		return httpOrderDbDefUrl;

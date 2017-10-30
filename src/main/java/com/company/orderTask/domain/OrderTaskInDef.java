@@ -10,7 +10,7 @@ public class OrderTaskInDef implements Serializable {
 	//定时执行
 	public static final int catogory_cron = 0;
 	//立即执行
-	public static final int category_mmediate = 1;
+	public static final int category_immediate = 1;
 	//调用者自己手动执行
 	public static final int catogory_manual = 2;
 	
@@ -23,9 +23,17 @@ public class OrderTaskInDef implements Serializable {
 	private String retryExpress;
 	
 	
+	private int maxThreadNumber;
+	
+	private int initThreadNumber;
+	
+	private int keepAliveTime;
+	
+	private int queneSize;
+	
 	public boolean isImmediateRun()
 	{
-		return category==category_mmediate;
+		return category==category_immediate;
 	}
 
 	public String getName() {
@@ -69,10 +77,46 @@ public class OrderTaskInDef implements Serializable {
 	}
 
 	
+	
+	public int getMaxThreadNumber() {
+		return maxThreadNumber;
+	}
+
+	public void setMaxThreadNumber(int maxThreadNumber) {
+		this.maxThreadNumber = maxThreadNumber;
+	}
+
+	public int getInitThreadNumber() {
+		return initThreadNumber;
+	}
+
+	public void setInitThreadNumber(int initThreadNumber) {
+		this.initThreadNumber = initThreadNumber;
+	}
+
+	public int getKeepAliveTime() {
+		return keepAliveTime;
+	}
+
+	public void setKeepAliveTime(int keepAliveTime) {
+		this.keepAliveTime = keepAliveTime;
+	}
+
+	public int getQueneSize() {
+		return queneSize;
+	}
+
+	public void setQueneSize(int queneSize) {
+		this.queneSize = queneSize;
+	}
+
 	@Override
 	public String toString() {
-		return "OrderTalkInDef [name=" + name + ", category=" + category + ", url=" + url + ", runExpress=" + runExpress
-				+ ", retryExpress=" + retryExpress  + "]";
+		return "OrderTaskInDef [name=" + name + ", category=" + category + ", url=" + url + ", runExpress=" + runExpress
+				+ ", retryExpress=" + retryExpress + ", maxThreadNumber=" + maxThreadNumber + ", initThreadNumber="
+				+ initThreadNumber + ", keepAliveTime=" + keepAliveTime + ", queneSize=" + queneSize + "]";
 	}
+
+	
 	
 }
