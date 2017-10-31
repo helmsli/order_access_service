@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.company.orderAccess.Const.OrderAccessConst;
-import com.company.orderAccess.domain.OrderMainContext;
 import com.company.orderAccess.service.OrderManagerService;
 import com.company.orderAccess.service.impl.RedisOrderIDServiceImpl;
 import com.company.orderDef.service.OrderDefService;
@@ -19,6 +18,7 @@ import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.orderDb.domain.OrderFlowDef;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
 import com.xinwei.orderDb.domain.OrderMain;
+import com.xinwei.orderDb.domain.OrderMainContext;
 @Service("orderManagerService")
 public class OrderManagerServiceImpl extends OrderDefService implements OrderManagerService,InitializingBean {
 	/**
@@ -29,6 +29,9 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 	
 	@Resource(name="orderTaskService")
 	private OrderTaskServiceImpl orderTaskService;
+	
+	@Resource(name="dbOrderTaskService")
+	private DbOrderTaskService dbOrderTaskService;
 	
 	@Override
 	public ProcessResult createOrder(OrderMainContext orderMainContext) {
@@ -48,8 +51,10 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		}
 		orderMainContext.setCurrentStep(orderMainContext.Step_start);
 		orderMainContext.setCurrentStatus(orderMainContext.STATUS_initial);
+		orderMainContext.setFlowId("0");
+		processResult= dbOrderTaskService.modifyOrderMain(orderMainContext);
 		//保存到数据库，并且保存到redis中
-		return null;
+		return processResult;
 	}
 
 	@Override
@@ -65,7 +70,7 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		ProcessResult processResult = new ProcessResult();
 		processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
 		
-		OrderMain orderMain = null;
+		OrderMain orderMain = this.dbOrderTaskService.getOrderMain(category, orderId);
 		//订单步骤不对
 		if(orderMain.Step_start.compareToIgnoreCase(orderMain.getCurrentStep())!=0||
 				orderMain.STATUS_initial!=orderMain.getCurrentStatus()	)
@@ -74,14 +79,11 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 			return processResult;
 		}
 		//need to get start step
-		OrderFlowStepdef OrderFlowStepdef  =null;
-		if(!StringUtils.isEmpty(OrderFlowStepdef.getTaskIn()))
-		{
-			orderTaskService.processInTask(orderMain);
-		}
-		orderMain.setCurrentStatus(orderMain.STATUS_running);
+		OrderFlowStepdef orderFlowStepdef  =this.getOrderStepDef(category, orderMain.Step_start, "");
+		
 		//保存到redis和数据库中
-		//返回成功；
+		processResult = orderTaskService.processStartTask(orderMain,orderFlowStepdef);
+		
 		return processResult;
 	}
 

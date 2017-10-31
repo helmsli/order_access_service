@@ -19,7 +19,7 @@ import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.nnl.common.util.JsonUtil;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
 @Service("orderTaskNotify")
-public class OrderTaskNotify implements  InitializingBean{
+public class OrderTaskNotifyScheduler implements  InitializingBean{
 	private  RestTemplate template = new RestTemplate();
 
 	@Value("${order.task.newNotifyUrl}")
@@ -49,60 +49,14 @@ public class OrderTaskNotify implements  InitializingBean{
 			{
 				return;
 			}
-			notifyTaskPool.execute(new NotifyTalk(orderTaskInfo,this.template,this.gnewTalkNotifyUrl));
+			notifyTaskPool.execute(new OrderRunInTaskNotify(orderTaskInfo,this.template,this.gnewTalkNotifyUrl));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
-	 class NotifyTalk implements Runnable{
-		 private OrderTaskRunInfo orderTaskInfo;
-		 private  RestTemplate notifyTemplate = null;
-		 private  String newTalkNotifyUrl; 
-		 public NotifyTalk(OrderTaskRunInfo orderTaskInfo,RestTemplate notifyTemplate,String newTalkNotifyUrl)
-		 {
-			 this.orderTaskInfo = orderTaskInfo;
-			 this.notifyTemplate = notifyTemplate;
-			 this.newTalkNotifyUrl = newTalkNotifyUrl;
-		 }
-		@Override
-		public void run() {
-			// TODO Auto-generated method stub
-			try {
-				notifyRunTalk();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		/**
-		 * 通知运行任务启动任务
-		 * @return
-		 */
-		public  ProcessResult notifyRunTalk()
-		{
-			ProcessResult result = null;
-			
-			try {
-				
-				result  = template.postForObject(newTalkNotifyUrl + "/" + orderTaskInfo.getCatetory() + "/" +orderTaskInfo.getOrderId() + "/" +orderTaskInfo.getCurrentStep()+ "/runOrderTask"  ,orderTaskInfo, ProcessResult.class);
-				if(result.getRetCode()!=OrderAccessConst.RESULT_Success)
-				{
-					
-				}
-				
-				return result;
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				
-			}
-			return result;
-		}
-	      
-	  }
-
+	 
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// TODO Auto-generated method stub

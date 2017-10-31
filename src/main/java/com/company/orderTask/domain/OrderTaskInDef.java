@@ -3,32 +3,38 @@ package com.company.orderTask.domain;
 import java.io.Serializable;
 
 import org.springframework.beans.factory.annotation.Value;
-
+/**
+ * 保存到订单中的taskin里面
+ * @author helmsli
+ *
+ */
 public class OrderTaskInDef implements Serializable {
 	
-	
-	//定时执行
+		//定时执行
 	public static final int catogory_cron = 0;
 	//立即执行
 	public static final int category_immediate = 1;
-	//调用者自己手动执行
+	//调用者自己手动执行,后台可以配置cron，但是调用后不会通知调度任务
 	public static final int catogory_manual = 2;
 	
 	private String name;
 	private int  category;
+	//配置到ip，端口和工程名子
 	private String url;
+	//rest的地址调用后的方法名称，具体的地址为url/category/dbid/orderid/restMethod
+	private String restMethod;
 	//cron express
 	private String runExpress;
 	//重做的retry次数
 	private String retryExpress;
 	
-	
+	//任务的最大线程数
 	private int maxThreadNumber;
-	
+	//初始的线程树木
 	private int initThreadNumber;
-	
+	//线程池的保持时间
 	private int keepAliveTime;
-	
+	//线程池的队列大小
 	private int queneSize;
 	
 	public boolean isImmediateRun()
@@ -110,12 +116,24 @@ public class OrderTaskInDef implements Serializable {
 		this.queneSize = queneSize;
 	}
 
+
+	public String getRestMethod() {
+		return restMethod;
+	}
+
+	public void setRestMethod(String restMethod) {
+		this.restMethod = restMethod;
+	}
+
 	@Override
 	public String toString() {
-		return "OrderTaskInDef [name=" + name + ", category=" + category + ", url=" + url + ", runExpress=" + runExpress
-				+ ", retryExpress=" + retryExpress + ", maxThreadNumber=" + maxThreadNumber + ", initThreadNumber="
-				+ initThreadNumber + ", keepAliveTime=" + keepAliveTime + ", queneSize=" + queneSize + "]";
+		return "OrderTaskInDef [name=" + name + ", category=" + category + ", url=" + url + ", restMethod=" + restMethod
+				+ ", runExpress=" + runExpress + ", retryExpress=" + retryExpress + ", maxThreadNumber="
+				+ maxThreadNumber + ", initThreadNumber=" + initThreadNumber + ", keepAliveTime=" + keepAliveTime
+				+ ", queneSize=" + queneSize + "]";
 	}
+
+
 
 	
 	

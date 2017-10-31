@@ -117,12 +117,13 @@
 		</dependency>  
 
         <!--引入lib目录中的第三方包--> 
+        
 		<dependency>
 			<groupId>com</groupId>
 			<artifactId>orderDb</artifactId>
 			<version>1.0</version>
 			<scope>system</scope>
-			<systemPath>${basedir}/lib/orderDb_1.0.0.3.jar</systemPath>
+			<systemPath>${basedir}/lib/orderDb_1.0.0.5.jar</systemPath>
 		</dependency>
 		
 		<dependency>

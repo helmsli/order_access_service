@@ -13,47 +13,26 @@ import com.xinwei.orderDb.domain.OrderFlowStepdef;
 import com.xinwei.orderDb.domain.OrderMain;
 @Service("orderTaskService")
 public class OrderTaskServiceImpl {
-	@Resource(name="redisOrderTaskService")
-	private RedisOrderTaskService redisOrderTaskService;
+	@Resource(name="dbOrderTaskService")
+	private DbOrderTaskService dbOrderTaskService;
 	@Resource(name="orderTaskNotify")
-	private OrderTaskNotify orderTaskNotify;
+	private OrderTaskNotifyScheduler orderTaskNotify;
 	/**
 	 * 处理进入任务的任务调度
 	 * @param orderMain
 	 * @return
 	 */
-	public ProcessResult processInTask(OrderMain orderMain)
+	public ProcessResult processStartTask(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef)
 	{
-		/**
-		 * 根据订单当前状态获取订单步骤。
-		 */
-		ProcessResult ProcessResult = new ProcessResult();
-		ProcessResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
-		OrderFlowStepdef OrderFlowStepdef=null;
-		//如果没有找到步骤信息
-		if(OrderFlowStepdef==null)
-		{
-			ProcessResult.setRetCode(OrderAccessConst.RESULT_ERROR_noStepInfo);
-			return ProcessResult;
-		}
-		//没有进入的任务信息
-		if(StringUtils.isEmpty(OrderFlowStepdef.getTaskIn()))
-		{
-			ProcessResult.setRetCode(OrderAccessConst.RESULT_ERROR_noRunningTask);
-			return ProcessResult;
-		}
-		//将任务信息放入信息调度队列
-		OrderTaskRunInfo orderTaskInfo =new OrderTaskRunInfo();
-		orderTaskInfo.setCatetory(orderMain.getCatetory());
-		orderTaskInfo.setOrderId(orderMain.getOrderId());
-		orderTaskInfo.setCurrentStatus(orderMain.getCurrentStatus());
-		orderTaskInfo.setCurrentStep(orderMain.getCurrentStep());
-		orderTaskInfo.setFlowId(orderMain.getFlowId());
-		redisOrderTaskService.putOrderTaskToQuene(orderTaskInfo);
 		//notify
-		orderTaskNotify.notifyNewTask(orderTaskInfo);
-		
-		return ProcessResult;
+		ProcessResult processResult = this.dbOrderTaskService.jumpToNextStep(orderMain, orderFlowStepdef);
+		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success && 
+				!StringUtils.isEmpty(orderFlowStepdef.getTaskIn()))
+		{
+			OrderTaskRunInfo orderTaskInfo=(OrderTaskRunInfo)processResult.getResponseInfo();
+			orderTaskNotify.notifyNewTask(orderTaskInfo);
+		}
+		return processResult;
 		
 		
 	}

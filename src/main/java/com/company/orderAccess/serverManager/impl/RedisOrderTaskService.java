@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.company.orderTask.domain.OrderTaskRunInfo;
 import com.xinwei.orderDb.domain.OrderMain;
@@ -21,6 +22,10 @@ public class RedisOrderTaskService {
 	
 	@Value("${order.task.queneName:orderTaskQuene}")
 	private String orderTaskQueneName;
+	
+	@Value("${order.cache.expireHours:120}")
+	private int orderCacheExpireHours;
+	
 	/**
 	 * 任务队列que的redis的key的前缀
 	 */
@@ -298,6 +303,11 @@ public class RedisOrderTaskService {
 		return "orderMain:"+category+":" + orderid;
 	}
 	
+	protected String getOrderContextKey(String category,String orderid,String key)
+	{
+		return "orderContext:"+category+":" + orderid + ":" + key;
+	}
+	
 	public String getOrderMainLockKey(String category,String orderid)
 	{
 		return "orderLock:"+category+":" + orderid;
@@ -310,9 +320,43 @@ public class RedisOrderTaskService {
 	 */
 	public boolean putOrderMainToCache(OrderMain orderMain)
 	{
-		String orderKey = getOrderMainKey(orderMain.getCatetory(),orderMain.getOrderId());
-		this.redisTemplate.opsForValue().set(orderKey, orderMain);
-		return true;
+		try {
+			String orderKey = getOrderMainKey(orderMain.getCatetory(),orderMain.getOrderId());
+			this.redisTemplate.opsForValue().set(orderKey, orderMain,orderCacheExpireHours,TimeUnit.HOURS);
+			return true;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public boolean putOrderContextToCache(String category,String orderId,String key,String context)
+	{
+		try {
+			if(!StringUtils.isEmpty(context))
+			{
+				String orderKey = getOrderContextKey(category,orderId,key);
+				this.redisTemplate.opsForValue().set(orderKey,context ,orderCacheExpireHours,TimeUnit.HOURS);
+			}
+			return true;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	public String getOrderContextFromCache(String category,String orderId,String key)
+	{
+		try {
+			String orderKey = getOrderContextKey(category,orderId,key);
+			return (String)this.redisTemplate.opsForValue().get(orderKey);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
 	}
 	
 	/**

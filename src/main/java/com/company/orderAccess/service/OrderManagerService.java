@@ -1,8 +1,8 @@
 package com.company.orderAccess.service;
 
-import com.company.orderAccess.domain.OrderMainContext;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.orderDb.domain.OrderMain;
+import com.xinwei.orderDb.domain.OrderMainContext;
 
 public interface OrderManagerService {
 	/**

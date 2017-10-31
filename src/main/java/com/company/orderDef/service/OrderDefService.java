@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.company.orderAccess.Const.OrderAccessConst;
@@ -274,7 +275,10 @@ public class OrderDefService {
 	{
 		try {
 			ProcessResult result = new ProcessResult();
-			
+			if(StringUtils.isEmpty(ownerKey))
+			{
+				ownerKey = "default";
+			}
 			result  = template.getForObject(httpOrderDbDefUrl + "/" + category + "/" +ownerKey+ "/getOrderStepDef"  , ProcessResult.class);
 			if(result.getRetCode()==OrderAccessConst.RESULT_Success)
 			{

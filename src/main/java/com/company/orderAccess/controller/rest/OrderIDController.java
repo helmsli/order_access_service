@@ -4,6 +4,7 @@ import java.security.PrivateKey;
 
 import javax.annotation.Resource;
 
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +33,10 @@ public class OrderIDController {
 		ProcessResult processResult =new ProcessResult();
 		processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
 		try {
-			processResult = orderIDService.createOrderId(category, ownerKey, jsonRequest);
-			
+			if(!StringUtils.isEmpty(ownerKey))
+			{
+				processResult = orderIDService.createOrderId(category, ownerKey, jsonRequest);
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
