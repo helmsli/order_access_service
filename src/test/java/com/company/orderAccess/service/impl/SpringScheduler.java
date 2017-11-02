@@ -1,4 +1,4 @@
-package com.company.security;
+package com.company.orderAccess.service.impl;
 
 import java.util.Date;
 
@@ -61,7 +61,7 @@ public class SpringScheduler implements SchedulingConfigurer{
 	        });  
 
 	}
-	
+	/*
 	public void createCron()
 	{
 		
@@ -70,4 +70,5 @@ public class SpringScheduler implements SchedulingConfigurer{
 		CronTrigger trigger = new CronTrigger("0 0/5 * * * ?"); // Every 5 minutes  
 		ScheduledFuture<Object> scedulefuture = scheduler.schedule(taskObject, trigger);  
 	}
+	*/
 }

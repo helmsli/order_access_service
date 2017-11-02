@@ -52,6 +52,7 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		orderMainContext.setCurrentStep(orderMainContext.Step_start);
 		orderMainContext.setCurrentStatus(orderMainContext.STATUS_initial);
 		orderMainContext.setFlowId("0");
+		orderMainContext.setIsFinished(0);
 		processResult= dbOrderTaskService.modifyOrderMain(orderMainContext);
 		//保存到数据库，并且保存到redis中
 		return processResult;

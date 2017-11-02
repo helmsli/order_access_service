@@ -24,6 +24,7 @@ import com.xinwei.orderDb.domain.OrderFlowDef;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
 @Component("orderIDService")
 @ConditionalOnProperty(name = "order.idService.enable")
+//@Service("orderIDService")
 public class OrderIDServiceImpl extends OrderDefService implements OrderIDService,InitializingBean {
 	
 	@Resource(name="redisOrderIdService")
@@ -58,6 +59,11 @@ public class OrderIDServiceImpl extends OrderDefService implements OrderIDServic
 		// TODO Auto-generated method stub
 		ProcessResult processResult = new ProcessResult();
 		processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
+		if(ownerKey==null)
+		{
+			processResult.setRetCode(OrderAccessConst.RESULT_ERROR_ownerIdKeyNull);
+			return processResult;
+		}
 		OrderFlowDef orderFlowDef= this.getOrderIdDef(category,ownerKey);
 		if(orderFlowDef==null)
 		{
@@ -273,6 +279,7 @@ public class OrderIDServiceImpl extends OrderDefService implements OrderIDServic
 		
 		OrderFlowDef orderFlowDef=null;
 		try {
+			
 			orderFlowDef = redisOrderIdService.getOrderIdDefFromCache(category);
 			if(orderFlowDef==null)
 			{

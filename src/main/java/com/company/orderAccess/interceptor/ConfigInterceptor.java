@@ -11,12 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @Configuration
 public class ConfigInterceptor extends WebMvcConfigurerAdapter{
 	
-	@Resource(name="tokenInterceptor")
-	private HandlerInterceptor tokenInterceptor;
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(tokenInterceptor).addPathPatterns("/**");
-    }
+	
     /**
      * 支持Ajax的跨域请求
      */

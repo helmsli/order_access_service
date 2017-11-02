@@ -25,5 +25,9 @@ public class OrderAccessConst {
 	 * can not find the step information 
 	 */
 	public static final int RESULT_ERROR_noStepInfo = RESULT_ERROR_START+3;
+	/**
+	 * owner key is null
+	 */
+	public static final int RESULT_ERROR_ownerIdKeyNull = RESULT_ERROR_START+4;
 	
 }

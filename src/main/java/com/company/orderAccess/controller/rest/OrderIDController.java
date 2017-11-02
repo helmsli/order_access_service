@@ -4,6 +4,7 @@ import java.security.PrivateKey;
 
 import javax.annotation.Resource;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +20,7 @@ import com.xinwei.orderDb.domain.OrderMain;
 
 @RestController
 @RequestMapping("/orderId")
+@ConditionalOnProperty(name = "order.idService.enable")
 public class OrderIDController {
 	@Resource(name="orderIDService")
 	private OrderIDService orderIDService;

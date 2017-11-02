@@ -27,9 +27,9 @@ import com.xinwei.orderDb.domain.OrderFlowStepdef;
 @Service("redisOrderIdService")
 public class RedisOrderIDServiceImpl {
 	
-	
-	
-	private final long  MillisPerDay = (24*3600000);
+	//default:24*3600000
+	@Value("${order.orderIdDef.expireMillis:86400000}")
+	private long  MillisPerDay;
 	
 	
 	
@@ -57,8 +57,6 @@ public class RedisOrderIDServiceImpl {
 	
 	@Resource(name = "redisTemplate")
 	protected RedisTemplate<Object, Object> redisTemplate;
-	
-	
 	
 	
 	

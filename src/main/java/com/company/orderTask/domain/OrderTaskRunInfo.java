@@ -21,16 +21,18 @@ public class OrderTaskRunInfo implements Serializable,Cloneable {
 	private int currentStatus;
 	/** 流程ID. */
 	private String flowId;
-
+	/**
+	 * 过期时间
+	 */
 	private long expireTime;
 	/**
 	 * 运行时间
 	 */
-	private long runTime;
+	private long runTime=System.currentTimeMillis();
 	/**
 	 * 运行次数
 	 */
-	private int runtimes;
+	private int runtimes=0;
 
 	public String getOrderId() {
 		return orderId;

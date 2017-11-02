@@ -54,6 +54,18 @@ public class RedisOrderTaskService {
 	{
 		return Prefix_key_OrderTaskQueneLock  + category  + ":" +queneName+ ":" + step;
 	}
+	
+	/**
+	 * 
+	 * @param queneName
+	 * @param category
+	 * @param step
+	 * @return
+	 */
+	public String getOrderRedoLockKey(String queneName,String category,String step)
+	{
+		return Prefix_key_OrderTaskQueneLock + "redo:" + category  + ":" +queneName+ ":" + step;
+	}
 	/**
 	 * 获取订单任务重做key
 	 * @param queneName
@@ -100,47 +112,107 @@ public class RedisOrderTaskService {
 		}
     	return false;
     }
+    /**
+     * 更新重做日志的信息，等待下一次调度
+     * @param orderTaskRunInfo
+     * @return
+     */
+    public boolean updateRedoTask(OrderTaskRunInfo orderTaskRunInfo)
+    {
+    	try {
+			String keyOrderRedo = getOrderTaskRedoKey(orderTaskQueneName,orderTaskRunInfo.getCatetory(),orderTaskRunInfo.getCurrentStep());
+			redisTemplate.opsForHash().put(keyOrderRedo, getOrderTaskKey(orderTaskRunInfo),orderTaskRunInfo);
+			return true;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return false;
+    }
     
     /**
      * 重做超时调度的任务
      * @param orderTaskInfo
      * @return
      */
-    public boolean redoTimeoutTask(String category,String step,int numbers)
+    public boolean redoTimeoutTask(String category,String step,int numbers,int timeoutMills,int retryTimes)
     {
-    	String key = this.getOrderTaskQueneKey(orderTaskQueneName,category,step);
-    	String keyOrderRedo = getOrderTaskRedoKey(orderTaskQueneName,category,step);
-    	List<String> timeOutRedoList = new ArrayList<String>();
-		Map<Object, Object> redoMap = redisTemplate.opsForHash().entries(keyOrderRedo);
-		int i=0;
-		for (Map.Entry<Object, Object> entry : redoMap.entrySet()) {
-			i++;
-			if(i>=numbers)
+    	
+    	String lockKey = getOrderRedoLockKey(orderTaskQueneName,category,step);
+    	long lockTime = 0;
+    	try {
+    		lockTime = this.getCommonLock(lockKey, 30);
+	    	if(lockTime == 0)
+	    	{
+	    		return false;
+	    	}
+	    	String key = this.getOrderTaskQueneKey(orderTaskQueneName,category,step);
+	    	String keyOrderRedo = getOrderTaskRedoKey(orderTaskQueneName,category,step);
+	    	List<String> timeOutRedoList = new ArrayList<String>();
+			Map<Object, Object> redoMap = redisTemplate.opsForHash().entries(keyOrderRedo);
+			int i=0;
+			for (Map.Entry<Object, Object> entry : redoMap.entrySet()) {
+				i++;
+				if(i>=numbers)
+				{
+					break;
+				}
+				try {
+					OrderTaskRunInfo orderTaskRunInfo =(OrderTaskRunInfo)entry.getValue();
+					if(orderTaskRunInfo!=null)
+					{
+						int havedRetryTimes = orderTaskRunInfo.getRuntimes();
+						//判断是否重试次数已经大于规定的重试次数，如果大于，延迟重做
+						if(havedRetryTimes>retryTimes)
+						{
+							timeoutMills = ((int)(havedRetryTimes/retryTimes)) * timeoutMills;
+						}
+						//如果时间已经过期,放入重做队列，会通知运维任务过期
+						if(orderTaskRunInfo.getExpireTime()>0 && System.currentTimeMillis() - orderTaskRunInfo.getExpireTime()>=0)
+						{
+							this.redisTemplate.opsForList().rightPush(key, orderTaskRunInfo);
+							timeOutRedoList.add((String)entry.getKey());
+						}
+						//判断是否时间超时需要重做
+						else if(System.currentTimeMillis() - orderTaskRunInfo.getRunTime() >=timeoutMills)
+						{
+							this.redisTemplate.opsForList().rightPush(key, orderTaskRunInfo);
+							timeOutRedoList.add((String)entry.getKey());
+						}
+						
+					}
+					else
+					{
+						try {
+							timeOutRedoList.add(entry.getKey().toString());
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			//删除重做的任务
+			for( i=0;i<timeOutRedoList.size();i++)
 			{
-				break;
+				redisTemplate.opsForHash().delete(keyOrderRedo, timeOutRedoList.get(i));
 			}
-			try {
-				OrderTaskRunInfo orderTaskRunInfo =(OrderTaskRunInfo)entry.getValue();
-				if(orderTaskRunInfo!=null && System.currentTimeMillis() - orderTaskRunInfo.getExpireTime()<0)
-				{
-					this.redisTemplate.opsForList().rightPush(key, orderTaskRunInfo);
-				}
-				else if(orderTaskRunInfo!=null)
-				{
-					timeOutRedoList.add(getOrderTaskKey(orderTaskRunInfo));
-				}
-			} catch (Throwable e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		//删除超时的任务
-		for( i=0;i<timeOutRedoList.size();i++)
-		{
-			redisTemplate.opsForHash().delete(keyOrderRedo, timeOutRedoList.get(i));
-		}
-		timeOutRedoList.clear();
-		return true;
+			timeOutRedoList.clear();
+    	}
+    	catch (Exception e)
+    	{
+    		
+    	}
+    	finally {
+    		if(lockTime>0)
+    		{
+    			this.releaseCommonLock(lockKey, lockTime);
+    		}
+    	}
+			return true;
     }
     
     /**
@@ -177,6 +249,8 @@ public class RedisOrderTaskService {
 					break;
 				}
 				//判断调度任务是否过期
+				/**
+				 * 不需要做，超时任务交给任务调度器，可以通知运维进行处理
 				if(System.currentTimeMillis() - orderTaskInfo.getExpireTime()<0)
 				{
 					this.redisTemplate.opsForList().leftPop(key);
@@ -186,10 +260,11 @@ public class RedisOrderTaskService {
 					}
 					continue;
 				}
+				**/
 				retLists.add(orderTaskInfo);
 				//放入到重做MAP中；
 				try {
-					Map<Object, Object> map =  redisTemplate.opsForHash().entries(keyOrderRedo); 
+					//Map<Object, Object> map =  redisTemplate.opsForHash().entries(keyOrderRedo); 
 					OrderTaskRunInfo redoOrderTaskInfo = orderTaskInfo.clone();
 					if(redoOrderTaskInfo!=null)
 					{
@@ -197,7 +272,8 @@ public class RedisOrderTaskService {
 						int runTimes = redoOrderTaskInfo.getRuntimes();
 						runTimes++;
 						redoOrderTaskInfo.setRuntimes(runTimes);
-						map.put(this.getOrderTaskKey(redoOrderTaskInfo), redoOrderTaskInfo);
+						redisTemplate.opsForHash().put(keyOrderRedo, getOrderTaskKey(redoOrderTaskInfo), redoOrderTaskInfo);
+						//map.put(this.getOrderTaskKey(redoOrderTaskInfo), redoOrderTaskInfo);
 					}
 				} catch (Exception e) {
 					// TODO Auto-generated catch block

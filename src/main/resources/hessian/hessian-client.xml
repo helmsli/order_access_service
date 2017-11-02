@@ -13,7 +13,7 @@
     	<property name="serviceUrl" value="${sms.service.url}SmsSendService"/>
     </bean>
   
-    -->
+    
     <bean id="userMainDbService" class="org.springframework.remoting.caucho.HessianProxyFactoryBean">
 		<property name="serviceInterface" value="com.company.orderAccess.service.SecurityUserService" />
 		<property name="serviceUrl" value="${hessian.mainUserDb}UserMainDbService" />
@@ -22,5 +22,5 @@
 		<property name="serviceInterface" value="com.company.orderAccess.service.SecurityUserService" />
 		<property name="serviceUrl" value="${hessian.readUserDb}UserMainDbService" />
 	</bean>
-	
+	-->
 </beans>

@@ -219,6 +219,9 @@ public class OrderDefService {
 			for(int i=0;i<orderFlowStepdefs.size();i++)
 			{
 				OrderFlowStepdef orderFlowStepdef=orderFlowStepdefs.get(i);
+				orderFlowStepdef.setTaskOutDefault(orderFlowStepdef.getTaskOutDefault());
+				orderFlowStepdef.setTaskOutError(orderFlowStepdef.getTaskOutError());
+				orderFlowStepdef.setTaskOutSucc(orderFlowStepdef.getTaskOutSucc());
 				key = getOrderStepDefKey(category,orderFlowStepdef.getStepId());
 				processResult = new ProcessResult();
 				processResult.setRetCode((int)(nowTime/(this.MillisPerDay)));
@@ -259,6 +262,11 @@ public class OrderDefService {
 		try {
 			ProcessResult result = new ProcessResult();
 			result  = template.getForObject(httpOrderDbDefUrl + "/" +  category+ "/" + ownerKey + "/getOrderDef" , ProcessResult.class);
+			if(result.getRetCode() == OrderAccessConst.RESULT_Success)
+			{
+				String jsonStr = (String)result.getResponseInfo();
+				result.setResponseInfo(JsonUtil.fromJson(jsonStr, OrderFlowDef.class));
+			}
 			return result;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

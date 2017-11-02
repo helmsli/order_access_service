@@ -18,11 +18,11 @@ import com.google.gson.reflect.TypeToken;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.nnl.common.util.JsonUtil;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
-@Service("orderTaskNotify")
+@Service("orderTaskNotifyScheduler")
 public class OrderTaskNotifyScheduler implements  InitializingBean{
 	private  RestTemplate template = new RestTemplate();
 
-	@Value("${order.task.newNotifyUrl}")
+	@Value("${order.task.runningNotifyUrl}")
 	private String gnewTalkNotifyUrl;
 	
 	@Value("${order.task.threadPoolMaxSize:100}")

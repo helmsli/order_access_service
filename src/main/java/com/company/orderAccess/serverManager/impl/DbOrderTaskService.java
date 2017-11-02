@@ -31,7 +31,7 @@ public class DbOrderTaskService {
 	@Value("${order.defDbUrl}")  
 	private String orderDefDbUrl;
 	
-	@Value("order.orderDbServiceUrl")
+	@Value("${order.orderDbServiceUrl}")
 	private String httpOrderDbUrl;
 
 	@Value("order.userOrdersServiceUrl")
@@ -40,7 +40,7 @@ public class DbOrderTaskService {
 	@Resource(name="redisOrderTaskService")
 	private RedisOrderTaskService redisOrderTaskService;
 	
-	private RestTemplate restTemplate;
+	private RestTemplate restTemplate=new RestTemplate();
 
 	/**
 	 * 设置步骤跳转信息，如果成功，返回信息；
@@ -71,12 +71,13 @@ public class DbOrderTaskService {
 		nextOrderFlow.setCurrentStatus(nextOrderFlow.STATUS_initial);
 		nextOrderFlow.setFlowId(String.valueOf(newFlowId));
 		nextOrderFlow.setStepId(orderFlowStepdef.getStepId());
+		nextOrderFlow.setRetryTimes("0");
 		//构造老的步骤信息
 		OrderFlow preOrderFlow = new OrderFlow();
-		nextOrderFlow.setOrderId(orderMain.getOrderId());
-		nextOrderFlow.setCurrentStatus(nextOrderFlow.STATUS_ending);
-		nextOrderFlow.setFlowId(orderMain.getFlowId());
-		nextOrderFlow.setStepId(orderMain.getCurrentStep());
+		preOrderFlow.setOrderId(orderMain.getOrderId());
+		preOrderFlow.setCurrentStatus(nextOrderFlow.STATUS_ending);
+		preOrderFlow.setFlowId(orderMain.getFlowId());
+		preOrderFlow.setStepId(orderMain.getCurrentStep());
 		
 		//是否删除上一步需要自动运行的
 		int needDeletePreStepRunning = 1;
@@ -107,7 +108,30 @@ public class DbOrderTaskService {
 			orderTaskInfo.setCurrentStatus(orderMain.getCurrentStatus());
 			orderTaskInfo.setCurrentStep(orderMain.getCurrentStep());
 			orderTaskInfo.setFlowId(orderMain.getFlowId());
+			orderTaskInfo.setRunTime(System.currentTimeMillis());
+			orderTaskInfo.setRuntimes(0);
+			if(StringUtils.isEmpty(orderFlowStepdef.getRunInfo()))
+			{
+				//永不过期
+				orderTaskInfo.setExpireTime(0);
+			}
+			else
+			{
+				//long expireTimeOut = orderFlowStepdef.getRetryTimes();
+				try {
+					if(StringUtils.isEmpty(orderFlowStepdef.getRunInfo().trim()))
+					{
+					long expireTimeOut = Long.parseLong(orderFlowStepdef.getRunInfo());
+					orderTaskInfo.setExpireTime(System.currentTimeMillis() + expireTimeOut);
+					}
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
 			redisOrderTaskService.putOrderTaskToQuene(orderTaskInfo);
+			processResult=modifyOrderMain(orderMain);
 			//notify
 			processResult.setResponseInfo(orderTaskInfo);
 			
@@ -137,8 +161,9 @@ public class DbOrderTaskService {
 	}
 	
 	
-	public Map<String,String> getOrderMainContext(String category, String orderId,List<String>keys)
+	public ProcessResult getOrderMainContext(String category, String orderId,List<String>keys)
 	{
+		ProcessResult processResult = new ProcessResult();
 		Map<String,String> maps = new HashMap<String,String>();
 		boolean isNeedQueryDb = false;
 		//从redis中获取
@@ -155,10 +180,12 @@ public class DbOrderTaskService {
 				maps.put(keys.get(i),value);
 			}
 		}
+		processResult.setRetCode(OrderAccessConst.RESULT_Success);
+		processResult.setResponseInfo(maps);
 		if(isNeedQueryDb)
 		{
 			//从数据库查询
-			maps  =this.selectOrderContextDataFromDb(category,orderId, keys);
+			processResult  =this.selectOrderContextDataFromDb(category,orderId, keys);
 			try {
 				//更新redis
 				for (Map.Entry<String,String> entry : maps.entrySet()) {  
@@ -169,7 +196,32 @@ public class DbOrderTaskService {
 				e.printStackTrace();
 			}  
 		}
-		return maps;
+		
+		return processResult;
+	}
+	public ProcessResult putOrderMainContext(String category, String orderId,Map<String,String> context)
+	{
+		ProcessResult processResult = new ProcessResult();
+		processResult.setRetCode(OrderAccessConst.RESULT_Success);
+		{
+			//从数据库查询
+			try {
+				//更新redis
+				for (Map.Entry<String,String> entry : context.entrySet()) {  
+					redisOrderTaskService.putOrderContextToCache(category, orderId, entry.getKey(), entry.getValue());
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  
+			OrderMainContext orderMainContext = new OrderMainContext();
+			orderMainContext.setCatetory(category);
+			orderMainContext.setOrderId(orderId);
+			orderMainContext.setContextDatas(context);
+			processResult=this.putOrderContextDataToDb(orderMainContext);
+		}
+		
+		return processResult;
 	}
 	/**
 	 * 跟距orderId更新orderMain
@@ -312,7 +364,7 @@ public class DbOrderTaskService {
 	 * @param contextKeys
 	 * @return
 	 */
-	public Map<String,String> selectOrderContextDataFromDb(String category,String orderId,List<String> keys) {
+	public ProcessResult selectOrderContextDataFromDb(String category,String orderId,List<String> keys) {
 		// TODO Auto-generated method stub
 
 		ProcessResult processResult = new ProcessResult();
@@ -324,9 +376,10 @@ public class DbOrderTaskService {
 		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success)
 		{
 			Map<String,String> contextMaps = JsonUtil.fromJson((String)processResult.getResponseInfo());
-			return contextMaps;
+		
+			processResult.setResponseInfo(contextMaps);
 		}
-		return null;
+		return processResult;
 	}
 
 	/**
@@ -337,7 +390,7 @@ public class DbOrderTaskService {
 	 * @param contextDatas
 	 * @return
 	 */
-	public ProcessResult putOrderContextData(OrderMainContext orderMainContext) {
+	public ProcessResult putOrderContextDataToDb(OrderMainContext orderMainContext) {
 		// TODO Auto-generated method stub
 
 		ProcessResult processResult = new ProcessResult();

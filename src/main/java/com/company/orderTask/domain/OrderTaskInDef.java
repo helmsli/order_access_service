@@ -36,7 +36,21 @@ public class OrderTaskInDef implements Serializable {
 	private int keepAliveTime;
 	//线程池的队列大小
 	private int queneSize;
+	/**
+	 * 任务调度时间间隔，单位毫秒
+	 */
+	private int timeoutMills=30000;
 	
+	
+	
+	public int getTimeoutMills() {
+		return timeoutMills;
+	}
+
+	public void setTimeoutMills(int timeoutMills) {
+		this.timeoutMills = timeoutMills;
+	}
+
 	public boolean isImmediateRun()
 	{
 		return category==category_immediate;

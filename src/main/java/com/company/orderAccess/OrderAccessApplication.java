@@ -16,9 +16,9 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @EnableAutoConfiguration
 //@EnableRedisHttpSession
 //@EnableRedisHttpSession 
-@ComponentScan ("com.company.security")
-@MapperScan ("com.company.security.mapper")
-@ImportResource ({ "classpath:hessian/hessian-client.xml", "classpath:hessian/hessian-server.xml" })
+@ComponentScan ("com.company.orderAccess")
+//@MapperScan ("com.company.security.mapper")
+//@ImportResource ({ "classpath:hessian/hessian-client.xml", "classpath:hessian/hessian-server.xml" })
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 86400*30)
 public class OrderAccessApplication {
     public static  ApplicationContext  app = null;
