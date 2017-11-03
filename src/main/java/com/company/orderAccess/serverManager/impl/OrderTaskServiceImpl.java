@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.company.orderAccess.Const.OrderAccessConst;
+import com.company.orderTask.domain.OrderTaskInDef;
 import com.company.orderTask.domain.OrderTaskRunInfo;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
@@ -22,10 +23,10 @@ public class OrderTaskServiceImpl {
 	 * @param orderMain
 	 * @return
 	 */
-	public ProcessResult processStartTask(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef)
+	public ProcessResult processStartTask(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef,OrderTaskInDef orderTaskInDef)
 	{
 		//notify
-		ProcessResult processResult = this.dbOrderTaskService.jumpToNextStep(orderMain, orderFlowStepdef);
+		ProcessResult processResult = this.dbOrderTaskService.jumpToNextStep(orderMain, orderFlowStepdef,orderTaskInDef);
 		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success && 
 				!StringUtils.isEmpty(orderFlowStepdef.getTaskIn()))
 		{
@@ -36,6 +37,4 @@ public class OrderTaskServiceImpl {
 		
 		
 	}
-	
-	
 }

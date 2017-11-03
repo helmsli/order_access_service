@@ -14,7 +14,10 @@ import com.company.orderAccess.Const.OrderAccessConst;
 import com.company.orderAccess.service.OrderManagerService;
 import com.company.orderAccess.service.impl.RedisOrderIDServiceImpl;
 import com.company.orderDef.service.OrderDefService;
+import com.company.orderTask.domain.OrderTaskInDef;
 import com.xinwei.nnl.common.domain.ProcessResult;
+import com.xinwei.nnl.common.util.JsonUtil;
+import com.xinwei.orderDb.domain.OrderFlow;
 import com.xinwei.orderDb.domain.OrderFlowDef;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
 import com.xinwei.orderDb.domain.OrderMain;
@@ -81,10 +84,41 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		}
 		//need to get start step
 		OrderFlowStepdef orderFlowStepdef  =this.getOrderStepDef(category, orderMain.Step_start, "");
-		
+		OrderTaskInDef orderTaskInDef=null;
+		if(!StringUtils.isEmpty(orderFlowStepdef.getRunInfo()))
+		{
+		   orderTaskInDef = JsonUtil.fromJson(orderFlowStepdef.getTaskIn(),OrderTaskInDef.class);
+		}
+		else
+		{
+			orderTaskInDef = new OrderTaskInDef();
+			orderTaskInDef.setCategory(OrderTaskInDef.catogory_manual);
+		}
 		//保存到redis和数据库中
-		processResult = orderTaskService.processStartTask(orderMain,orderFlowStepdef);
+		processResult = orderTaskService.processStartTask(orderMain,orderFlowStepdef,orderTaskInDef);
 		
+		return processResult;
+	}
+
+	@Override
+	public ProcessResult mjumpToNext(String category, OrderFlow orderFlow) {
+		// TODO Auto-generated method stub
+		ProcessResult processResult = new ProcessResult();
+		processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
+		
+		OrderMain orderMain = this.dbOrderTaskService.getOrderMain(category, orderFlow.getOrderId());
+		OrderFlowStepdef orderFlowStepdef  =this.getOrderStepDef(category, orderFlow.getStepId(), "");
+		OrderTaskInDef orderTaskInDef=null;
+		if(!StringUtils.isEmpty(orderFlowStepdef.getRunInfo()))
+		{
+		   orderTaskInDef = JsonUtil.fromJson(orderFlowStepdef.getTaskIn(),OrderTaskInDef.class);
+		}
+		else
+		{
+			orderTaskInDef = new OrderTaskInDef();
+			orderTaskInDef.setCategory(OrderTaskInDef.catogory_manual);
+		}
+		processResult = orderTaskService.processStartTask(orderMain,orderFlowStepdef,orderTaskInDef);
 		return processResult;
 	}
 

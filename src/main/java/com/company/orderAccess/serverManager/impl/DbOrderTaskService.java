@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import com.company.orderAccess.Const.OrderAccessConst;
+import com.company.orderTask.domain.OrderTaskInDef;
 import com.company.orderTask.domain.OrderTaskRunInfo;
 import com.xinwei.nnl.common.domain.JsonRequest;
 import com.xinwei.nnl.common.domain.ProcessResult;
@@ -48,7 +49,7 @@ public class DbOrderTaskService {
 	 * @param orderFlowStepdef -- 如果是第一步，步骤id填写start
 	 * @return
 	 */
-	public ProcessResult jumpToNextStep(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef)
+	public ProcessResult jumpToNextStep(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef,OrderTaskInDef orderTaskInDef)
 	{
 		
 		ProcessResult processResult = new ProcessResult();
@@ -60,8 +61,8 @@ public class DbOrderTaskService {
 			processResult.setRetCode(OrderAccessConst.RESULT_ERROR_noStepInfo);
 			return processResult;
 		}
-		//判断是否有进入步骤的运行信息
-		boolean haveRunInTask = !(StringUtils.isEmpty(orderFlowStepdef.getTaskIn())); 
+		//判断是否有进入步骤的运行信息,运行信息不为空，并且不是结束任务
+		boolean haveRunInTask = (!(StringUtils.isEmpty(orderFlowStepdef.getTaskIn())))&& (orderFlowStepdef.getStepId().compareToIgnoreCase(OrderMain.Step_end)!=0); 
 		//定义步骤id
 		int newFlowId = Integer.parseInt(orderMain.getFlowId());
 		newFlowId++;
@@ -99,7 +100,7 @@ public class DbOrderTaskService {
 		//更新数据库
 		processResult = this.updateOrderFlowStepJumping(nextOrderFlow, preOrderFlow, needAddRunningNowStep, needDeletePreStepRunning);
 		
-		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success&&haveRunInTask)
+		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success)
 		{
 			//将任务信息放入信息调度队列
 			OrderTaskRunInfo orderTaskInfo =new OrderTaskRunInfo();
@@ -129,8 +130,12 @@ public class DbOrderTaskService {
 					e.printStackTrace();
 				}
 			}
-			
-			redisOrderTaskService.putOrderTaskToQuene(orderTaskInfo);
+			 
+			if(haveRunInTask&& orderTaskInDef.getCategory()!=OrderTaskInDef.catogory_manual)
+			{
+				redisOrderTaskService.putOrderTaskToQuene(orderTaskInfo);
+				
+			}
 			processResult=modifyOrderMain(orderMain);
 			//notify
 			processResult.setResponseInfo(orderTaskInfo);
@@ -199,25 +204,23 @@ public class DbOrderTaskService {
 		
 		return processResult;
 	}
-	public ProcessResult putOrderMainContext(String category, String orderId,Map<String,String> context)
+	public ProcessResult putOrderMainContext(OrderMainContext orderMainContext)
 	{
 		ProcessResult processResult = new ProcessResult();
 		processResult.setRetCode(OrderAccessConst.RESULT_Success);
 		{
 			//从数据库查询
+			Map<String,String>context = orderMainContext.getContextDatas();
 			try {
 				//更新redis
 				for (Map.Entry<String,String> entry : context.entrySet()) {  
-					redisOrderTaskService.putOrderContextToCache(category, orderId, entry.getKey(), entry.getValue());
+					redisOrderTaskService.putOrderContextToCache(orderMainContext.getCatetory(), orderMainContext.getOrderId(), entry.getKey(), entry.getValue());
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}  
-			OrderMainContext orderMainContext = new OrderMainContext();
-			orderMainContext.setCatetory(category);
-			orderMainContext.setOrderId(orderId);
-			orderMainContext.setContextDatas(context);
+			
 			processResult=this.putOrderContextDataToDb(orderMainContext);
 		}
 		

@@ -1,6 +1,7 @@
 package com.company.orderAccess.service;
 
 import com.xinwei.nnl.common.domain.ProcessResult;
+import com.xinwei.orderDb.domain.OrderFlow;
 import com.xinwei.orderDb.domain.OrderMain;
 import com.xinwei.orderDb.domain.OrderMainContext;
 
@@ -23,4 +24,6 @@ public interface OrderManagerService {
 	public ProcessResult startOrder(String category, String orderId);
 
 	
+	public ProcessResult mjumpToNext(String category,OrderFlow orderFlow);
+
 }
