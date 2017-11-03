@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -23,8 +24,8 @@ public class OrderDefService {
 	
 	private Map<String,ProcessResult> orderDefList = new ConcurrentHashMap<String,ProcessResult>();
 	
-	
-	private  RestTemplate template = new RestTemplate();
+	@Autowired
+	private  RestTemplate template;
 	/**
 	 * 订单定义表的数据库ID
 	 */

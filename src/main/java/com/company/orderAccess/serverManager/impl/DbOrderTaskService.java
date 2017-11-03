@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -41,7 +42,8 @@ public class DbOrderTaskService {
 	@Resource(name="redisOrderTaskService")
 	private RedisOrderTaskService redisOrderTaskService;
 	
-	private RestTemplate restTemplate=new RestTemplate();
+	@Autowired
+	private RestTemplate restTemplate;
 
 	/**
 	 * 设置步骤跳转信息，如果成功，返回信息；

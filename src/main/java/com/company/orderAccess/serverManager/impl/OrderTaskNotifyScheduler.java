@@ -20,7 +20,8 @@ import com.xinwei.nnl.common.util.JsonUtil;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
 @Service("orderTaskNotifyScheduler")
 public class OrderTaskNotifyScheduler implements  InitializingBean{
-	private  RestTemplate template = new RestTemplate();
+	@Autowired
+	private  RestTemplate template;
 
 	@Value("${order.task.runningNotifyUrl}")
 	private String gnewTalkNotifyUrl;
