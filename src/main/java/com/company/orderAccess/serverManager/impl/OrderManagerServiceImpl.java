@@ -22,6 +22,7 @@ import com.xinwei.orderDb.domain.OrderFlowDef;
 import com.xinwei.orderDb.domain.OrderFlowStepdef;
 import com.xinwei.orderDb.domain.OrderMain;
 import com.xinwei.orderDb.domain.OrderMainContext;
+import com.xinwei.orderDb.domain.StepJumpDef;
 @Service("orderManagerService")
 public class OrderManagerServiceImpl extends OrderDefService implements OrderManagerService,InitializingBean {
 	/**
@@ -56,7 +57,7 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		orderMainContext.setCurrentStatus(orderMainContext.STATUS_initial);
 		orderMainContext.setFlowId("0");
 		orderMainContext.setIsFinished(0);
-		processResult= dbOrderTaskService.modifyOrderMain(orderMainContext);
+		processResult= dbOrderTaskService.saveOrderMainContext(orderMainContext);
 		//保存到数据库，并且保存到redis中
 		return processResult;
 	}
@@ -107,11 +108,29 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
 		
 		OrderMain orderMain = this.dbOrderTaskService.getOrderMain(category, orderFlow.getOrderId());
-		OrderFlowStepdef orderFlowStepdef  =this.getOrderStepDef(category, orderFlow.getStepId(), "");
-		OrderTaskInDef orderTaskInDef=null;
-		if(!StringUtils.isEmpty(orderFlowStepdef.getRunInfo()))
+		if(orderMain==null)
 		{
-		   orderTaskInDef = JsonUtil.fromJson(orderFlowStepdef.getTaskIn(),OrderTaskInDef.class);
+			processResult.setRetCode(OrderAccessConst.RESULT_ERROR_OrderNotExist);
+			return processResult;
+		}
+		if(orderMain.getFlowId().compareTo(orderFlow.getFlowId())!=0 ||
+				orderMain.getCurrentStep().compareToIgnoreCase(orderFlow.getStepId())!=0||
+				orderMain.getCurrentStatus()!=orderFlow.getCurrentStatus())
+		{
+			//状态不正确；
+			processResult.setRetCode(OrderAccessConst.RESULT_ERROR_NoFlowID);
+			return processResult;
+		}
+		
+		OrderFlowStepdef orderFlowStepdef  =this.getOrderStepDef(category, orderFlow.getStepId(), "");
+		
+		StepJumpDef stepJumpDef = orderFlowStepdef.getStepJumpDef(Integer.parseInt(orderFlow.getRetCode()));
+		OrderFlowStepdef nextOrderFlowStepdef= getOrderStepDef(category, stepJumpDef.getNextStep(), ""); 
+		//根据下一步确定运行信息
+		OrderTaskInDef orderTaskInDef=null;
+		if(!StringUtils.isEmpty(nextOrderFlowStepdef.getRunInfo()))
+		{
+		   orderTaskInDef = JsonUtil.fromJson(nextOrderFlowStepdef.getTaskIn(),OrderTaskInDef.class);
 		}
 		else
 		{

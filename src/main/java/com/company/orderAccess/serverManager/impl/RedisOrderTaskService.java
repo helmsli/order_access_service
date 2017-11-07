@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import com.company.orderTask.domain.OrderTaskRunInfo;
 import com.xinwei.orderDb.domain.OrderMain;
+import com.xinwei.orderDb.domain.OrderMainContext;
 @Service("redisOrderTaskService")
 public class RedisOrderTaskService {
 	

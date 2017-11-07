@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import com.company.orderAccess.Const.OrderAccessConst;
 import com.company.orderTask.domain.OrderTaskInDef;
 import com.company.orderTask.domain.OrderTaskRunInfo;
+import com.google.gson.reflect.TypeToken;
 import com.xinwei.nnl.common.domain.JsonRequest;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.nnl.common.util.JsonUtil;
@@ -148,86 +149,82 @@ public class DbOrderTaskService {
 	
 	
 	public OrderMain getOrderMain(String category, String orderId) {
-		
-		
+
 		OrderMain orderMain = redisOrderTaskService.getOrderMainFromCache(category, orderId);
-		if(orderMain==null)
-		{
-			orderMain = selectOrderMainFromDb(category,orderId);
-			if(orderMain!=null)
-			{
+		if (orderMain == null) {
+			orderMain = selectOrderMainFromDb(category, orderId);
+			if (orderMain != null) {
 				redisOrderTaskService.putOrderMainToCache(orderMain);
 			}
 		}
 		return orderMain;
 	}
 
-	public ProcessResult saveOrderMainContext(String category, String orderId,Map<String,String>maps)
-	{
+	public ProcessResult saveOrderMainContext(String category, String orderId, Map<String, String> maps) {
 		return null;
 	}
 	
 	
-	public ProcessResult getOrderMainContext(String category, String orderId,List<String>keys)
-	{
+	public ProcessResult getOrderMainContext(String category, String orderId, List<String> keys) {
 		ProcessResult processResult = new ProcessResult();
-		Map<String,String> maps = new HashMap<String,String>();
+		Map<String, String> maps = new HashMap<String, String>();
 		boolean isNeedQueryDb = false;
-		//从redis中获取
-		for(int i=0;i<keys.size();i++)
-		{
+		// 从redis中获取
+		for (int i = 0; i < keys.size(); i++) {
 			String value = this.redisOrderTaskService.getOrderContextFromCache(category, orderId, keys.get(i));
-			if(StringUtils.isEmpty(value))
-			{
+			if (StringUtils.isEmpty(value)) {
 				isNeedQueryDb = true;
 				break;
-			}
-			else
-			{
-				maps.put(keys.get(i),value);
+			} else {
+				maps.put(keys.get(i), value);
 			}
 		}
 		processResult.setRetCode(OrderAccessConst.RESULT_Success);
 		processResult.setResponseInfo(maps);
-		if(isNeedQueryDb)
-		{
-			//从数据库查询
-			processResult  =this.selectOrderContextDataFromDb(category,orderId, keys);
+		if (isNeedQueryDb) {
+			// 从数据库查询
+			processResult = this.selectOrderContextDataFromDb(category, orderId, keys);
 			try {
-				//更新redis
-				for (Map.Entry<String,String> entry : maps.entrySet()) {  
-					redisOrderTaskService.putOrderContextToCache(category, orderId, entry.getKey(), entry.getValue());
+				if(processResult.getRetCode()==0)
+				{
+					maps =(Map<String, String>) processResult.getResponseInfo();
+					// 更新redis
+					for (Map.Entry<String, String> entry : maps.entrySet()) {
+						redisOrderTaskService.putOrderContextToCache(category, orderId, entry.getKey(), entry.getValue());
+					}
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}  
+			}
 		}
 		
 		return processResult;
 	}
-	public ProcessResult putOrderMainContext(OrderMainContext orderMainContext)
-	{
+
+	public ProcessResult putOrderMainContext(OrderMainContext orderMainContext) {
 		ProcessResult processResult = new ProcessResult();
 		processResult.setRetCode(OrderAccessConst.RESULT_Success);
 		{
-			//从数据库查询
-			Map<String,String>context = orderMainContext.getContextDatas();
+			// 从数据库查询
+			Map<String, String> context = orderMainContext.getContextDatas();
 			try {
-				//更新redis
-				for (Map.Entry<String,String> entry : context.entrySet()) {  
-					redisOrderTaskService.putOrderContextToCache(orderMainContext.getCatetory(), orderMainContext.getOrderId(), entry.getKey(), entry.getValue());
+				// 更新redis
+				for (Map.Entry<String, String> entry : context.entrySet()) {
+					redisOrderTaskService.putOrderContextToCache(orderMainContext.getCatetory(),
+							orderMainContext.getOrderId(), entry.getKey(), entry.getValue());
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}  
-			
-			processResult=this.putOrderContextDataToDb(orderMainContext);
+			}
+
+			processResult = this.putOrderContextDataToDb(orderMainContext);
 		}
-		
+
 		return processResult;
 	}
+
 	/**
 	 * 跟距orderId更新orderMain
 	 */
@@ -258,12 +255,31 @@ public class DbOrderTaskService {
 		return processResult;
 	}
 	/**
-	 * 插入保存orderMain
+	 * 保存订单和上下文数据到数据库
+	 * @param orderMainContext
+	 * @return
+	 */
+	public ProcessResult saveOrderMainContext(OrderMainContext orderMainContext) {
+
+		//保存数据到内存
+		Map<String, String>  contextMaps = orderMainContext.getContextDatas();
+		if(contextMaps!=null)
+		{
+			for (Map.Entry<String, String> entry : contextMaps.entrySet()) {
+				redisOrderTaskService.putOrderContextToCache(orderMainContext.getCatetory(), orderMainContext.getOrderId(), entry.getKey(), entry.getValue());
+			}
+		}		
+		//保存数据到数据库
+		return saveOrderMainContextToDb(orderMainContext);
+	}
+	
+	/**
+	 * 保存订单和上下文到数据库
 	 * 
 	 * @param orderMain
 	 * @return
 	 */
-	protected ProcessResult saveOrderMainToDb(OrderMainContext orderMainContext) {
+	protected ProcessResult saveOrderMainContextToDb(OrderMainContext orderMainContext) {
 
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderMainContext.getOrderId();
@@ -273,7 +289,24 @@ public class DbOrderTaskService {
 		if (processResult.getRetCode() == 0) {
 			return processResult;
 		}
-		return null;
+		return processResult;
+	}
+	/**
+	 * 保存订单信息到数据库(不包括上下文信息)
+	 * @param orderMain
+	 * @return
+	 */
+	protected ProcessResult saveOrderMainToDb(OrderMain orderMain) {
+
+		ProcessResult processResult = new ProcessResult();
+		String orderId = orderMain.getOrderId();
+		String dbId = OrderMain.getDbId(orderId);
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/addOrderMain",
+				orderMain, ProcessResult.class);
+		if (processResult.getRetCode() == 0) {
+			return processResult;
+		}
+		return processResult;
 	}
 
 	/**
@@ -369,21 +402,23 @@ public class DbOrderTaskService {
 	 * @param contextKeys
 	 * @return
 	 */
-	public ProcessResult selectOrderContextDataFromDb(String category,String orderId,List<String> keys) {
+	public ProcessResult selectOrderContextDataFromDb(String category, String orderId, List<String> keys) {
 		// TODO Auto-generated method stub
 
 		ProcessResult processResult = new ProcessResult();
 		String dbId = OrderMain.getDbId(orderId);
 		JsonRequest jsonRequest = new JsonRequest();
 		jsonRequest.setJsonString(JsonUtil.toJson(keys));
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + category + "/" +dbId + "/" + orderId + "/getContextData",
-				jsonRequest, ProcessResult.class);
-		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success)
-		{
-			Map<String,String> contextMaps = JsonUtil.fromJson((String)processResult.getResponseInfo());
+		processResult = restTemplate.postForObject(
+				httpOrderDbUrl + "/" + category + "/" + dbId + "/" + orderId + "/getContextData", jsonRequest,
+				ProcessResult.class);
+		 if(processResult.getRetCode()==OrderAccessConst.RESULT_Success)
+		 {
+		 Map<String,String> contextMaps =
+		 JsonUtil.fromJson((String)processResult.getResponseInfo(),new TypeToken<HashMap<String,String>>(){}.getType());
 		
-			processResult.setResponseInfo(contextMaps);
-		}
+		 processResult.setResponseInfo(contextMaps);
+		 }
 		return processResult;
 	}
 

@@ -32,8 +32,8 @@ public class OrderManagerController {
 	private DbOrderTaskService dbOrderTaskService;
 
 	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/createOrder")
-	public ProcessResult addOrderMain(@PathVariable String category,@PathVariable String dbId, @PathVariable String orderId,
-			@RequestBody OrderMainContext orderMain) {
+	public ProcessResult addOrderMain(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId, @RequestBody OrderMainContext orderMain) {
 		ProcessResult processResult = new ProcessResult();
 		try {
 			processResult = orderManagerService.createOrder(orderMain);
@@ -47,7 +47,8 @@ public class OrderManagerController {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/getOrder")
-	public ProcessResult getOrderMainFromDb(@PathVariable String category,@PathVariable String dbId, @PathVariable String orderId) {
+	public ProcessResult getOrderMain(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId) {
 		ProcessResult processResult = new ProcessResult();
 		try {
 
@@ -65,7 +66,8 @@ public class OrderManagerController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET, value = "{category}/{dbId}/{orderId}/startOrder")
-	public ProcessResult startOrderMain(@PathVariable String category,@PathVariable String dbId, @PathVariable String orderId) {
+	public ProcessResult startOrderMain(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId) {
 		ProcessResult processResult = new ProcessResult();
 		try {
 			
@@ -81,8 +83,8 @@ public class OrderManagerController {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/putContextData")
-	public ProcessResult putContextData(@PathVariable String category,@PathVariable String dbId, @PathVariable String orderId,
-			@RequestBody OrderMainContext orderMainContext) {
+	public ProcessResult putContextData(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId, @RequestBody OrderMainContext orderMainContext) {
 		ProcessResult processResult = new ProcessResult();
 		try {
 
@@ -97,8 +99,8 @@ public class OrderManagerController {
 	}
      
 	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/getContextData")
-	public ProcessResult getContextData(@PathVariable String category,@PathVariable String dbId, @PathVariable String orderId,
-			@RequestBody JsonRequest jsonRequest) {
+	public ProcessResult getContextData(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId, @RequestBody JsonRequest jsonRequest) {
 		ProcessResult processResult = new ProcessResult();
 		try {
 			String jsonString = jsonRequest.getJsonString();
@@ -116,8 +118,8 @@ public class OrderManagerController {
 	}
 	
 	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/mJumpToNext")
-	public ProcessResult manualJumpToNextStep(@PathVariable String category,@PathVariable String dbId, @PathVariable String orderId,
-			@RequestBody OrderFlow orderFlow) {
+	public ProcessResult manualJumpToNextStep(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId, @RequestBody OrderFlow orderFlow) {
 		ProcessResult processResult = new ProcessResult();
 		try {
 			
@@ -131,15 +133,12 @@ public class OrderManagerController {
 		}
 		return processResult;
 	}
-	
-	protected void toJsonProcessResult(ProcessResult processResult)
-	{
-		if(processResult.getRetCode()==OrderDbConst.RESULT_SUCCESS)
-		{
-			
+
+	protected void toJsonProcessResult(ProcessResult processResult) {
+		if (processResult.getRetCode() == OrderDbConst.RESULT_SUCCESS) {
+
 			Object object = processResult.getResponseInfo();
-			if(object!=null)
-			{
+			if (object != null) {
 				processResult.setResponseInfo(JsonUtil.toJson(object));
 			}
 		}

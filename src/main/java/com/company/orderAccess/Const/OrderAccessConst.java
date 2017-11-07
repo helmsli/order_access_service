@@ -30,4 +30,9 @@ public class OrderAccessConst {
 	 */
 	public static final int RESULT_ERROR_ownerIdKeyNull = RESULT_ERROR_START+4;
 	
+	/**
+	 * owner key is null
+	 */
+	public static final int RESULT_ERROR_NoFlowID = RESULT_ERROR_START+5;
+	
 }

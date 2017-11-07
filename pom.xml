@@ -120,15 +120,17 @@
 		       <version>1.9.22</version>  
 		</dependency>  
 
-        <!--引入lib目录中的第三方包--> 
+        <!--引入lib目录中的第三方包 -->
         
 		<dependency>
-			<groupId>com</groupId>
+			<groupId>com.xinwei</groupId>
 			<artifactId>orderDb</artifactId>
 			<version>1.0</version>
 			<scope>system</scope>
-			<systemPath>${basedir}/lib/orderDb_1.0.0.5.jar</systemPath>
+			<systemPath>${basedir}/lib/order_db_1.0.10.jar</systemPath>
 		</dependency>
+		
+		
 		
 		<dependency>
 			<groupId>com.xinwei.nnl</groupId>
