@@ -33,7 +33,7 @@ public class AspectLog {
   private Logger log = LoggerFactory.getLogger(getClass());
   private Gson gson = new Gson();
   //申明一个切点 里面是 execution表达式
-  @Pointcut("execution(public * com.company.orderAccess.service..*.*(..))")
+  @Pointcut("execution(public * com.company.orderAccess.service..*.*(..))||execution(public * com.company.orderAccess.serverManager..*.*(..))  ")
   public void mylogPoint(){}
   
   /**

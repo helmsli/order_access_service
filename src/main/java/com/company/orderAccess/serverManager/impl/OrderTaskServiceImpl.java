@@ -26,9 +26,9 @@ public class OrderTaskServiceImpl {
 	public ProcessResult processStartTask(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef,OrderTaskInDef orderTaskInDef)
 	{
 		//notify
-		ProcessResult processResult = this.dbOrderTaskService.jumpToNextStep(orderMain, orderFlowStepdef,orderTaskInDef);
+		ProcessResult processResult = this.dbOrderTaskService.jumpToNextStep(orderMain, orderFlowStepdef,orderTaskInDef,null);
 		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success && 
-				!StringUtils.isEmpty(orderFlowStepdef.getTaskIn()))
+				!StringUtils.isEmpty(orderFlowStepdef.getTaskIn())&&orderTaskInDef.getCategory()==OrderTaskInDef.category_immediate)
 		{
 			OrderTaskRunInfo orderTaskInfo=(OrderTaskRunInfo)processResult.getResponseInfo();
 			orderTaskNotify.notifyNewTask(orderTaskInfo);

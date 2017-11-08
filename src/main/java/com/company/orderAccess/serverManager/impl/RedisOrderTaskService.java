@@ -283,7 +283,6 @@ public class RedisOrderTaskService {
 				//从队列中移走
 				this.redisTemplate.opsForList().leftPop(key);
 				
-				
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -52,7 +52,7 @@ public class DbOrderTaskService {
 	 * @param orderFlowStepdef -- 如果是第一步，步骤id填写start
 	 * @return
 	 */
-	public ProcessResult jumpToNextStep(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef,OrderTaskInDef orderTaskInDef)
+	public ProcessResult jumpToNextStep(OrderMain orderMain,OrderFlowStepdef orderFlowStepdef,OrderTaskInDef orderTaskInDef,ProcessResult runResult)
 	{
 		
 		ProcessResult processResult = new ProcessResult();
@@ -82,7 +82,20 @@ public class DbOrderTaskService {
 		preOrderFlow.setCurrentStatus(nextOrderFlow.STATUS_ending);
 		preOrderFlow.setFlowId(orderMain.getFlowId());
 		preOrderFlow.setStepId(orderMain.getCurrentStep());
-		
+		if(runResult!=null)
+		{
+			try {
+				preOrderFlow.setRetCode(String.valueOf(runResult.getRetCode()));
+				if(runResult.getResponseInfo()!=null)
+				{
+					String str = runResult.getResponseInfo().toString();
+					preOrderFlow.setRetMsg(str.substring(0, 128));
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		//是否删除上一步需要自动运行的
 		int needDeletePreStepRunning = 1;
 		//是否最新的一步需要自动运行
@@ -319,7 +332,9 @@ public class DbOrderTaskService {
 		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/getOrderMainFromDb",
 				null, ProcessResult.class);
 		if (processResult.getRetCode() == 0) {
-			OrderMain orderMain = (OrderMain) processResult.getResponseInfo();
+			System.out.println(processResult.toString());
+			OrderMain orderMain = (OrderMain)JsonUtil.fromJson((String)processResult.getResponseInfo(), OrderMain.class);
+			//OrderMain orderMain = (OrderMain) processResult.getResponseInfo();
 			return orderMain;
 		}
 		return null;
@@ -441,38 +456,7 @@ public class DbOrderTaskService {
 		return processResult;
 	}
 
-	/**
-	 * 根据分类查询单条orderDef
-	 * 
-	 * @param url
-	 *            http://127.0.0.1:8088/orderDb/{category}/{ownerKey}/getOrderDef
-	 * @return
-	 */
-	public ProcessResult selectOrderDefByCategory(String category, String ownerKey) {
-		// TODO Auto-generated method stub
-
-		ProcessResult processResult = new ProcessResult();
-		processResult = restTemplate.getForObject(orderDefDbUrl + "/" + category + "/" + ownerKey + "/getOrderDef",
-				null, ProcessResult.class);
-		return processResult;
-	}
-
-	/**
-	 * 根据分类查询所有的orderStepdef
-	 * 
-	 * @param url
-	 *            http://127.0.0.1:8088/orderDb/{category}/{ownerKey}/getOrderStepDef
-	 * @return
-	 */
-	public ProcessResult selectOrderStepDefsByCategory(String category, String ownerKey) {
-		// TODO Auto-generated method stub
-
-		ProcessResult processResult = new ProcessResult();
-		processResult = restTemplate.getForObject(orderDefDbUrl + "/" + category + "/" + ownerKey + "/getOrderStepDef",
-				null, ProcessResult.class);
-		return processResult;
-	}
-
+	
 	/**
 	 * @param jsonRequest
 	 *            {"stepId":"xxxxxxxxxxxxxxx","flowId":"xxxxxxxxxxx"}
@@ -484,6 +468,10 @@ public class DbOrderTaskService {
 		String dbId = OrderMain.getDbId(orderId);
 		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/selectOrderFlow",
 				jsonRequest, ProcessResult.class);
+		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success)
+		{
+			processResult.setResponseInfo(JsonUtil.fromJson((String)processResult.getResponseInfo(), OrderFlow.class));
+		}
 		return processResult;
 	}
 
@@ -494,7 +482,7 @@ public class DbOrderTaskService {
 	 *            http://127.0.0.1:8088/userOrders/{dbId}/{orderId}/selectUserOrdersById
 	 * @param userOrders
 	 * @return
-	 */
+	 
 	public ProcessResult selectUserOrdersByOrderId(UserOrders userOrders) {
 		// TODO Auto-generated method stub
 
@@ -506,7 +494,7 @@ public class DbOrderTaskService {
 				ProcessResult.class);
 		return processResult;
 	}
-
+*/
 	/**
 	 * 根据状态查询userOrders ownerKey createTime currentStatus三属性确定一条记录
 	 * 
@@ -514,7 +502,7 @@ public class DbOrderTaskService {
 	 *            http://127.0.0.1:8088/userOrders/{dbId}/{orderId}/selectUserOrdersByStatus
 	 * @param userOrders
 	 * @return
-	 */
+	
 	public ProcessResult selectUserOrdersByOrderStatus(UserOrders userOrders) {
 		// TODO Auto-generated method stub
 
@@ -526,7 +514,7 @@ public class DbOrderTaskService {
 				ProcessResult.class);
 		return processResult;
 	}
-
+	 */
 	
 	
 	/**
@@ -536,7 +524,7 @@ public class DbOrderTaskService {
 	 *            http://127.0.0.1:8088/userOrders/{dbId}/{orderId}/updateUserOrdersStatus
 	 * @param userOrders
 	 * @return
-	 */
+	 
 	public ProcessResult updateUserOrdersStatus(UserOrders userOrders) {
 		// TODO Auto-generated method stub
 
@@ -548,7 +536,7 @@ public class DbOrderTaskService {
 				ProcessResult.class);
 		return processResult;
 	}
-
+*/
 	/**
 	 * 插入一条userOrders
 	 * 
@@ -556,7 +544,7 @@ public class DbOrderTaskService {
 	 *            http://127.0.0.1:8088/userOrders/{dbId}/{orderId}/insertUserOrders
 	 * @param userOrders
 	 * @return
-	 */
+	 
 	public ProcessResult insertUserOrders(UserOrders userOrders) {
 		// TODO Auto-generated method stub
 
@@ -567,14 +555,14 @@ public class DbOrderTaskService {
 				userOrders, ProcessResult.class);
 		return processResult;
 	}
-
+*/
 	/**
 	 * 删除一条userOrders
 	 * 
 	 * @param url
 	 *            http://127.0.0.1:8088/userOrders/{dbId}/{orderId}/deleteUserOrders
 	 * @return
-	 */
+	 
 	public ProcessResult deleteUserOrders(String orderId) {
 		// TODO Auto-generated method stub
 
@@ -584,4 +572,5 @@ public class DbOrderTaskService {
 				null, ProcessResult.class);
 		return processResult;
 	}
+	*/
 }

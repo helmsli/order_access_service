@@ -31,7 +31,7 @@ public class OrderManagerController {
 	@Resource(name="dbOrderTaskService")
 	private DbOrderTaskService dbOrderTaskService;
 
-	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/createOrder")
+	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/createOrder")
 	public ProcessResult addOrderMain(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId, @RequestBody OrderMainContext orderMain) {
 		ProcessResult processResult = new ProcessResult();
@@ -46,7 +46,7 @@ public class OrderManagerController {
 		return processResult;
 	}
 	
-	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/getOrder")
+	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/getOrder")
 	public ProcessResult getOrderMain(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId) {
 		ProcessResult processResult = new ProcessResult();
@@ -65,7 +65,7 @@ public class OrderManagerController {
 		return processResult;
 	}
 
-	@RequestMapping(method = RequestMethod.GET, value = "{category}/{dbId}/{orderId}/startOrder")
+	@RequestMapping(method = RequestMethod.GET, value = "/{category}/{dbId}/{orderId}/startOrder")
 	public ProcessResult startOrderMain(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId) {
 		ProcessResult processResult = new ProcessResult();
@@ -81,8 +81,7 @@ public class OrderManagerController {
 		}
 		return processResult;
 	}
-	
-	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/putContextData")
+	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/putContextData")
 	public ProcessResult putContextData(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId, @RequestBody OrderMainContext orderMainContext) {
 		ProcessResult processResult = new ProcessResult();
@@ -98,7 +97,7 @@ public class OrderManagerController {
 		return processResult;
 	}
      
-	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/getContextData")
+	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/getContextData")
 	public ProcessResult getContextData(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId, @RequestBody JsonRequest jsonRequest) {
 		ProcessResult processResult = new ProcessResult();
@@ -117,7 +116,7 @@ public class OrderManagerController {
 		return processResult;
 	}
 	
-	@RequestMapping(method = RequestMethod.POST, value = "{category}/{dbId}/{orderId}/mJumpToNext")
+	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/mJumpToNext")
 	public ProcessResult manualJumpToNextStep(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId, @RequestBody OrderFlow orderFlow) {
 		ProcessResult processResult = new ProcessResult();
