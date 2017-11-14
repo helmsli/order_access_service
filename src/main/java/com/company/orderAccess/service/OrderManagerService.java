@@ -1,5 +1,6 @@
 package com.company.orderAccess.service;
 
+import com.xinwei.nnl.common.domain.JsonRequest;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.orderDb.domain.OrderFlow;
 import com.xinwei.orderDb.domain.OrderMain;
@@ -21,7 +22,7 @@ public interface OrderManagerService {
 	 * @param orderId
 	 * @return
 	 */
-	public ProcessResult startOrder(String category, String orderId);
+	public ProcessResult startOrder(String category, String orderId,JsonRequest jsonRequest);
 
 	
 	public ProcessResult mjumpToNext(String category,OrderFlow orderFlow);

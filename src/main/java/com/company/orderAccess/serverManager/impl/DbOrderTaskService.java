@@ -384,7 +384,7 @@ public class DbOrderTaskService {
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderFlow.getOrderId();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/configOrderFlow",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/updateStepStatus",
 				orderFlow, ProcessResult.class);
 		return processResult;
 	}

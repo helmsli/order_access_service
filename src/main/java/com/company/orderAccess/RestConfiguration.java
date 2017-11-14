@@ -23,6 +23,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -32,6 +33,10 @@ import org.springframework.web.client.RestTemplate;
 
 
 @Configuration
+//@Configuration
+//@ConfigurationProperties(prefix = "privilege", locations = "classpath:application.properties")
+//@EnableConfigurationProperties({PrivilegeSettings.class, Privilege2Settings.class})
+//@ConfigurationProperties(locations = "classpath:properyname.properties", prefix = "datasource")
 public class RestConfiguration {
   
 	@Value("${rest.maxConnection:200}")

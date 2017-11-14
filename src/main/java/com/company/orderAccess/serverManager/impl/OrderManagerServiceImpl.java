@@ -15,6 +15,7 @@ import com.company.orderAccess.service.OrderManagerService;
 import com.company.orderAccess.service.impl.RedisOrderIDServiceImpl;
 import com.company.orderDef.service.OrderDefService;
 import com.company.orderTask.domain.OrderTaskInDef;
+import com.xinwei.nnl.common.domain.JsonRequest;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.nnl.common.util.JsonUtil;
 import com.xinwei.orderDb.domain.OrderFlow;
@@ -69,7 +70,7 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 	}
 
 	@Override
-	public ProcessResult startOrder(String category, String orderId) {
+	public ProcessResult startOrder(String category, String orderId,JsonRequest jsonRequest) {
 		// TODO Auto-generated method stub
 		//1.获取orderID，获取order步骤定义
 		ProcessResult processResult = new ProcessResult();

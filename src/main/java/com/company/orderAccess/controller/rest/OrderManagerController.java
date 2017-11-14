@@ -71,7 +71,24 @@ public class OrderManagerController {
 		ProcessResult processResult = new ProcessResult();
 		try {
 			
-			processResult = orderManagerService.startOrder(category, orderId);
+			processResult = orderManagerService.startOrder(category, orderId,null);
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+			processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
+
+		}
+		return processResult;
+	}
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/startOrder")
+	public ProcessResult startOrderMainWithParm(@PathVariable String category, @PathVariable String dbId,
+			@PathVariable String orderId,@RequestBody JsonRequest jsonRequest) {
+		ProcessResult processResult = new ProcessResult();
+		try {
+			
+			processResult = orderManagerService.startOrder(category, orderId,jsonRequest);
 			
 		} catch (Exception e) {
 			// TODO: handle exception
