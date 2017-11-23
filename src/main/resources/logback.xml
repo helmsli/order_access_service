@@ -2,10 +2,10 @@
 <configuration>
 	<include resource="org/springframework/boot/logging/logback/base.xml" />
 	<appender name="dailyRollingFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<File>../logs/logback_order_access.log</File>
+		<File>../logs/logback_orderAccess.log</File>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<!-- daily rollover -->
-			<FileNamePattern>../logs/logback_order_access.%d{yyyy-MM-dd}-%i.log</FileNamePattern>
+			<FileNamePattern>../logs/logback_orderAccess.%d{yyyy-MM-dd}-%i.log</FileNamePattern>
 			<!-- keep 20 days' worth of history -->
 			<maxHistory>20</maxHistory>
 			<TimeBasedFileNamingAndTriggeringPolicy	class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">

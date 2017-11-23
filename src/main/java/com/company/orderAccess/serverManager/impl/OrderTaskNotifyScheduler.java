@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.company.orderAccess.Const.OrderAccessConst;
+import com.company.orderTask.domain.OrderTaskInDef;
 import com.company.orderTask.domain.OrderTaskRunInfo;
 import com.google.gson.reflect.TypeToken;
 import com.xinwei.nnl.common.domain.ProcessResult;
@@ -57,6 +58,15 @@ public class OrderTaskNotifyScheduler implements  InitializingBean{
 		}
 	}
 	
+	public void notifyNewTrigger(OrderTaskInDef orderTaskInDef,OrderTaskRunInfo orderTaskInfo)
+	{
+		try {
+			notifyTaskPool.execute(new OrderRunInTaskTrigger(orderTaskInDef,orderTaskInfo,this.template));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	 
 	@Override
 	public void afterPropertiesSet() throws Exception {

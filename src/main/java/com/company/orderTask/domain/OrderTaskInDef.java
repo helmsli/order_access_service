@@ -23,6 +23,8 @@ public class OrderTaskInDef implements Serializable {
 	private String url;
 	//rest的地址调用后的方法名称，具体的地址为url/category/dbid/orderid/restMethod
 	private String restMethod;
+	private String triggerUrl;
+	private String triggerRestMethod;
 	//cron express
 	private String runExpress;
 	//重做的retry次数
@@ -139,13 +141,33 @@ public class OrderTaskInDef implements Serializable {
 		this.restMethod = restMethod;
 	}
 
+	
+	public String getTriggerUrl() {
+		return triggerUrl;
+	}
+
+	public void setTriggerUrl(String triggerUrl) {
+		this.triggerUrl = triggerUrl;
+	}
+
+	public String getTriggerRestMethod() {
+		return triggerRestMethod;
+	}
+
+	public void setTriggerRestMethod(String triggerRestMethod) {
+		this.triggerRestMethod = triggerRestMethod;
+	}
+
 	@Override
 	public String toString() {
 		return "OrderTaskInDef [name=" + name + ", category=" + category + ", url=" + url + ", restMethod=" + restMethod
-				+ ", runExpress=" + runExpress + ", retryExpress=" + retryExpress + ", maxThreadNumber="
-				+ maxThreadNumber + ", initThreadNumber=" + initThreadNumber + ", keepAliveTime=" + keepAliveTime
-				+ ", queneSize=" + queneSize + "]";
+				+ ", triggerUrl=" + triggerUrl + ", triggerRestMethod=" + triggerRestMethod + ", runExpress="
+				+ runExpress + ", retryExpress=" + retryExpress + ", maxThreadNumber=" + maxThreadNumber
+				+ ", initThreadNumber=" + initThreadNumber + ", keepAliveTime=" + keepAliveTime + ", queneSize="
+				+ queneSize + ", timeoutMills=" + timeoutMills + "]";
 	}
+
+	
 
 
 

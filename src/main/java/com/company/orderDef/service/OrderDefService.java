@@ -45,7 +45,8 @@ public class OrderDefService {
 	/**
 	 * map中对象过期时间
 	 */
-	private final long  MillisPerDay = (24*3600000);
+	@Value("${order.defExpireMillis:24*3600000}")
+	private long  MillisPerDay = (24*3600000);
 	
 	
 	/**
