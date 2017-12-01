@@ -42,6 +42,10 @@ public class OrderIDController {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			if(!StringUtils.isEmpty(e.getMessage()))
+			{
+				processResult.setRetMsg(e.getMessage().substring(0,128));
+			}
 		}
 		return processResult;
 	}

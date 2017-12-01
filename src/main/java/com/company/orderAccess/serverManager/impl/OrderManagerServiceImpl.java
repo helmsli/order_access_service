@@ -5,16 +5,17 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import com.company.orderAccess.Const.OrderAccessConst;
 import com.company.orderAccess.service.OrderManagerService;
-import com.company.orderAccess.service.impl.RedisOrderIDServiceImpl;
 import com.company.orderDef.service.OrderDefService;
 import com.company.orderTask.domain.OrderTaskInDef;
+import com.company.userOrder.domain.UserOrder;
 import com.xinwei.nnl.common.domain.JsonRequest;
 import com.xinwei.nnl.common.domain.ProcessResult;
 import com.xinwei.nnl.common.util.JsonUtil;
@@ -38,6 +39,16 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 	@Resource(name="dbOrderTaskService")
 	private DbOrderTaskService dbOrderTaskService;
 	
+	
+	@Value("${order.userOrderDbWriteUrl}")
+	private String orderUserDbWriteUrl;
+	
+	
+	
+	@Autowired
+	private  RestTemplate restTemplate = null;
+	
+	
 	@Override
 	public ProcessResult createOrder(OrderMainContext orderMainContext) {
 		// TODO Auto-generated method stub
@@ -59,10 +70,55 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 		orderMainContext.setFlowId("0");
 		orderMainContext.setIsFinished(0);
 		processResult= dbOrderTaskService.saveOrderMainContext(orderMainContext);
+		if(processResult!=null&& processResult.getRetCode()==0)
+		{
+			if(orderFlowDef.getDeployId().compareToIgnoreCase(orderFlowDef.DeployId_noAutoDeploy)==0)
+			{
+				
+			}
+			else if(orderFlowDef.getDeployId().compareToIgnoreCase(orderFlowDef.DeployId_constTime)==0)
+			{
+				UserOrder userOrder = new UserOrder();
+				userOrder.setCategory(orderMainContext.getCatetory());
+				userOrder.setOrderId(orderMainContext.getOrderId());
+				userOrder.setStatus(userOrder.STATUS_CreateOrder);
+				userOrder.setUserId(orderMainContext.getOwnerKey());
+				userOrder.setConstCreateTime();
+				processResult=saveUserOrderToDb(userOrder);
+			}
+			else if(orderFlowDef.getDeployId().compareToIgnoreCase(orderFlowDef.DeployId_systemTime)==0)
+			{
+				UserOrder userOrder = new UserOrder();
+				userOrder.setCategory(orderMainContext.getCatetory());
+				userOrder.setOrderId(orderMainContext.getOrderId());
+				userOrder.setStatus(userOrder.STATUS_CreateOrder);
+				userOrder.setUserId(orderMainContext.getOwnerKey());
+				processResult=saveUserOrderToDb(userOrder);
+			}
+		}
 		//保存到数据库，并且保存到redis中
 		return processResult;
 	}
 
+	protected ProcessResult saveUserOrderToDb(UserOrder userOrder)
+	{
+		ProcessResult result = null;
+		try {
+			result  = restTemplate.postForObject(orderUserDbWriteUrl + "/" +  userOrder.getCategory()+ "/" + userOrder.getUserId() + "/configUserOrder" ,userOrder ,ProcessResult.class);
+			return result;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			result = new ProcessResult();
+			result.setRetCode(OrderAccessConst.RESULT_Error_Fail);
+			if(!StringUtils.isEmpty(e.getMessage()))
+			{
+				result.setRetMsg(e.getMessage().substring(0, 128));
+			}	
+		}
+		return result;
+
+    }
+	
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// TODO Auto-generated method stub

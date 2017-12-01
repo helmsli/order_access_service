@@ -26,7 +26,6 @@ import com.xinwei.orderDb.domain.OrderFlowStepdef;
 import com.xinwei.orderDb.domain.OrderMain;
 import com.xinwei.orderDb.domain.OrderMainContext;
 import com.xinwei.orderDb.domain.StepJumpingRequest;
-import com.xinwei.userOrders.domain.UserOrders;
 
 @Service("dbOrderTaskService")
 public class DbOrderTaskService {
@@ -86,9 +85,9 @@ public class DbOrderTaskService {
 		{
 			try {
 				preOrderFlow.setRetCode(String.valueOf(runResult.getRetCode()));
-				if(runResult.getResponseInfo()!=null)
+				if(!StringUtils.isEmpty(runResult.getRetMsg()))
 				{
-					String str = runResult.getResponseInfo().toString();
+					String str = runResult.getRetMsg();
 					preOrderFlow.setRetMsg(str.substring(0, 128));
 				}
 			} catch (Exception e) {

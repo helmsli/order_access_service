@@ -17,6 +17,7 @@ import com.xinwei.orderDb.domain.OrderMain;
 public class OrderTaskServiceImpl {
 	@Resource(name="dbOrderTaskService")
 	private DbOrderTaskService dbOrderTaskService;
+	
 	@Resource(name="orderTaskNotifyScheduler")
 	private OrderTaskNotifyScheduler orderTaskNotify;
 	/**
