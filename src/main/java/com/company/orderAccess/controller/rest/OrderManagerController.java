@@ -40,8 +40,8 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
-
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
+			
 		}
 		return processResult;
 	}
@@ -59,8 +59,8 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderDbConst.RESULT_HandleException);
-
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
+			
 		}
 		return processResult;
 	}
@@ -76,8 +76,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
-
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 		}
 		return processResult;
 	}
@@ -93,8 +92,8 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
-
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
+			
 		}
 		return processResult;
 	}
@@ -108,8 +107,8 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderAccessConst.RESULT_Error_Fail);
-
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
+			
 		}
 		return processResult;
 	}
@@ -128,7 +127,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderAccessConst.RESULT_Success);
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 		}
 		return processResult;
 	}
@@ -145,7 +144,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-			processResult.setRetCode(OrderDbConst.RESULT_HandleException);
+			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 		}
 		return processResult;
 	}
