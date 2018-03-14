@@ -1,5 +1,7 @@
 package com.company.orderAccess.serverManager.impl;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +9,8 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,8 @@ public class DbOrderTaskService {
 	@Autowired
 	private RestTemplate restTemplate;
 
+	 private Logger logger = LoggerFactory.getLogger(getClass());
+
 	/**
 	 * 设置步骤跳转信息，如果成功，返回信息；
 	 * @param orderMain
@@ -70,6 +76,7 @@ public class DbOrderTaskService {
 		newFlowId++;
 		//构造新的步骤信息
 		OrderFlow nextOrderFlow = new OrderFlow();
+		nextOrderFlow.setCatetory(orderMain.getCatetory());
 		nextOrderFlow.setOrderId(orderMain.getOrderId());
 		nextOrderFlow.setCurrentStatus(nextOrderFlow.STATUS_initial);
 		nextOrderFlow.setFlowId(String.valueOf(newFlowId));
@@ -77,6 +84,7 @@ public class DbOrderTaskService {
 		nextOrderFlow.setRetryTimes("0");
 		//构造老的步骤信息
 		OrderFlow preOrderFlow = new OrderFlow();
+		preOrderFlow.setCatetory(orderMain.getCatetory());
 		preOrderFlow.setOrderId(orderMain.getOrderId());
 		preOrderFlow.setCurrentStatus(nextOrderFlow.STATUS_ending);
 		preOrderFlow.setFlowId(orderMain.getFlowId());
@@ -88,11 +96,22 @@ public class DbOrderTaskService {
 				if(!StringUtils.isEmpty(runResult.getRetMsg()))
 				{
 					String str = runResult.getRetMsg();
+					if(str.length()>128)
+					{
 					preOrderFlow.setRetMsg(str.substring(0, 128));
+					}
+					else
+					{
+						preOrderFlow.setRetMsg(str);
+					}
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				StringWriter errors = new StringWriter();
+				e.printStackTrace(new PrintWriter(errors));
+				String errorStr = errors.toString();
+				this.logger.error(errorStr.toString());
 			}
 		}
 		//是否删除上一步需要自动运行的
@@ -148,8 +167,13 @@ public class DbOrderTaskService {
 			 
 			if(haveRunInTask&& orderTaskInDef.getCategory()!=OrderTaskInDef.catogory_manual)
 			{
+				logger.debug(orderTaskInfo.toString());
 				redisOrderTaskService.putOrderTaskToQuene(orderTaskInfo);
 				
+			}
+			else
+			{
+				logger.error("not put to task quene:" + orderTaskInfo.toString());
 			}
 			processResult=modifyOrderMain(orderMain);
 			//notify
@@ -205,9 +229,16 @@ public class DbOrderTaskService {
 						redisOrderTaskService.putOrderContextToCache(category, orderId, entry.getKey(), entry.getValue());
 					}
 				}
+				else if(processResult.getRetCode()==OrderDbConst.RESULT_HandleException)
+				{
+					processResult.setRetCode(OrderDbConst.RESULT_HandleException);
+					
+				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				processResult.setRetCode(OrderDbConst.RESULT_HandleException);
+				
 			}
 		}
 		
@@ -262,7 +293,7 @@ public class DbOrderTaskService {
 
 		ProcessResult processResult = new ProcessResult();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/updateMainOrder",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + category + "/" + dbId + "/" + orderId + "/updateMainOrder",
 				orderMain, ProcessResult.class);
 		return processResult;
 	}
@@ -296,7 +327,7 @@ public class DbOrderTaskService {
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderMainContext.getOrderId();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/addOrderMain",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + orderMainContext.getCatetory() + "/" + dbId + "/" + orderId + "/addOrderMain",
 				orderMainContext, ProcessResult.class);
 		if (processResult.getRetCode() == 0) {
 			return processResult;
@@ -313,7 +344,7 @@ public class DbOrderTaskService {
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderMain.getOrderId();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/addOrderMain",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + orderMain.getCatetory() + "/" + dbId + "/" + orderId + "/addOrderMain",
 				orderMain, ProcessResult.class);
 		if (processResult.getRetCode() == 0) {
 			return processResult;
@@ -328,7 +359,7 @@ public class DbOrderTaskService {
 
 		ProcessResult processResult = new ProcessResult();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/getOrderMainFromDb",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + category + "/" + dbId + "/" + orderId + "/getOrderMainFromDb",
 				null, ProcessResult.class);
 		if (processResult.getRetCode() == 0) {
 			System.out.println(processResult.toString());
@@ -364,7 +395,7 @@ public class DbOrderTaskService {
 		stepJumpingRequest.setNextOrderFlow(nextOrderFlow);
 		stepJumpingRequest.setPreOrderAutoRun(preOrderAutoRun);
 		stepJumpingRequest.setPreOrderFlow(preOrderFlow);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/stepjumping",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" +nextOrderFlow.getCatetory() + "/" +  dbId + "/" + orderId + "/stepjumping",
 				stepJumpingRequest, ProcessResult.class);
 		return processResult;
 	}
@@ -383,7 +414,7 @@ public class DbOrderTaskService {
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderFlow.getOrderId();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/updateStepStatus",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" +orderFlow.getCatetory()+ "/" + dbId + "/" + orderId + "/updateStepStatus",
 				orderFlow, ProcessResult.class);
 		return processResult;
 	}
@@ -402,7 +433,7 @@ public class DbOrderTaskService {
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderFlow.getOrderId();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/updateStepStatus",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + orderFlow.getCatetory() + "/" + dbId + "/" + orderId + "/updateStepStatus",
 				orderFlow, ProcessResult.class);
 
 		return processResult;
@@ -450,7 +481,7 @@ public class DbOrderTaskService {
 		ProcessResult processResult = new ProcessResult();
 		String orderId = orderMainContext.getOrderId();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/putContextData",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + orderMainContext.getCatetory() + "/" + dbId + "/" + orderId + "/putContextData",
 				orderMainContext, ProcessResult.class);
 		return processResult;
 	}
@@ -462,10 +493,10 @@ public class DbOrderTaskService {
 	 * @param orderId
 	 * @return
 	 */
-	public ProcessResult selectOrderFlow(JsonRequest jsonRequest, String orderId) {
+	public ProcessResult selectOrderFlow(JsonRequest jsonRequest, String category,String orderId) {
 		ProcessResult processResult = new ProcessResult();
 		String dbId = OrderMain.getDbId(orderId);
-		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" + dbId + "/" + orderId + "/selectOrderFlow",
+		processResult = restTemplate.postForObject(httpOrderDbUrl + "/" +category + "/" + dbId + "/" + orderId + "/selectOrderFlow",
 				jsonRequest, ProcessResult.class);
 		if(processResult.getRetCode()==OrderAccessConst.RESULT_Success)
 		{

@@ -194,7 +194,7 @@ public class OrderManagerServiceImpl extends OrderDefService implements OrderMan
 			orderTaskInDef = new OrderTaskInDef();
 			orderTaskInDef.setCategory(OrderTaskInDef.catogory_manual);
 		}
-		processResult = orderTaskService.processStartTask(orderMain,orderFlowStepdef,orderTaskInDef);
+		processResult = orderTaskService.processStartTask(orderMain,nextOrderFlowStepdef,orderTaskInDef);
 		return processResult;
 	}
 

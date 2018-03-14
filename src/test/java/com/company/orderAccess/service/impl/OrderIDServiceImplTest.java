@@ -35,9 +35,9 @@ public class OrderIDServiceImplTest {
 	@Test
 	public void testCreateOrderId() {
 		//fail("Not yet implemented");
-		for(int i=0;i<10000;i++)
+		for(int i=0;i<100;i++)
 		{
-			ProcessResult processResult = orderIDServiceImpl.createOrderId("test","aa",null);
+			ProcessResult processResult = orderIDServiceImpl.createOrderId("oFamNumBiz","aa",null);
 			System.out.print(processResult.toString());
 		}
 	}
@@ -57,7 +57,7 @@ public class OrderIDServiceImplTest {
 		orderMainContext.setOrderId(processResult.getResponseInfo().toString());
 		orderMainContext.setCatetory(category);
 		orderManagerService.createOrder(orderMainContext);
-		orderManagerService.startOrder(category, orderMainContext.getOrderId());
+	//	orderManagerService.startOrder(category, orderMainContext.getOrderId());
 	}
 	@Test
 	public void testStartOrder()
@@ -69,7 +69,7 @@ public class OrderIDServiceImplTest {
 		orderMainContext.setOrderId("2801000001");
 		orderMainContext.setCatetory(category);
 		orderManagerService.createOrder(orderMainContext);
-		orderManagerService.startOrder(category, orderMainContext.getOrderId());
+	//	orderManagerService.startOrder(category, orderMainContext.getOrderId());
 	}
 	
 	@Test

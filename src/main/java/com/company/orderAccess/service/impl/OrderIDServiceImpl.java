@@ -45,7 +45,7 @@ public class OrderIDServiceImpl extends OrderDefService implements OrderIDServic
 	/**
 	 * 本地初始化的orderId 前缀，如果cache出错，会使用这个变量
 	 */
-	@Value("${order.createIdPrefix:000A}")  
+	@Value("${order.createIdPrefix:0001}")  
 	private String localOrderIdPrefix;
 	
 	
@@ -135,7 +135,7 @@ public class OrderIDServiceImpl extends OrderDefService implements OrderIDServic
 		if(isCreateFromLocal)
 		{
 			//订单id+本地前缀+分区ID+dbID
-			sRetNewOrderId = String.valueOf(retNewId) + localOrderIdPrefix + spartitionId + orderIDDef.getDbId(); 
+			sRetNewOrderId = localOrderIdPrefix + String.valueOf(retNewId) +  spartitionId + orderIDDef.getDbId(); 
 			
 		}
 		else

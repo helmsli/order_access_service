@@ -1,9 +1,17 @@
 package com.company.orderTask.domain;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.Date;
 
-public class OrderTaskRunInfo implements Serializable,Cloneable {
+import org.springframework.beans.BeanUtils;
+
+import com.xinwei.nnl.common.util.JsonUtil;
+
+public class OrderTaskRunInfo implements Externalizable,Cloneable {
 	/**
 	 * 
 	 */
@@ -98,14 +106,16 @@ public class OrderTaskRunInfo implements Serializable,Cloneable {
 		this.runTime = runTime;
 	}
 
+	
+
+	
 	@Override
 	public String toString() {
 		return "OrderTaskRunInfo [orderId=" + orderId + ", catetory=" + catetory + ", currentStep=" + currentStep
 				+ ", currentStatus=" + currentStatus + ", flowId=" + flowId + ", expireTime=" + expireTime
-				+ ", runtimes=" + runtimes + "]";
+				+ ", runTime=" + runTime + ", runtimes=" + runtimes + "]";
 	}
 
-	
 	@Override  
     public OrderTaskRunInfo clone()  {  
         try {
@@ -115,6 +125,24 @@ public class OrderTaskRunInfo implements Serializable,Cloneable {
 			e.printStackTrace();
 		}  
         return null;
-    }  
+    }
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		// TODO Auto-generated method stub
+		out.write(JsonUtil.toJson(this).getBytes("UTF-8"));
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		// TODO Auto-generated method stub
+		byte b[] =null;
+		int len = in.read(b);
+		if(len>0)
+		{
+			OrderTaskRunInfo newObject = JsonUtil.fromJson(new String(b,"UTF-8"), OrderTaskRunInfo.class);
+			BeanUtils.copyProperties(newObject, this);
+		}
+	}  
 	
 }

@@ -19,30 +19,29 @@ public class ControllerUtils {
 			processResult = new ProcessResult();
 		}
 		processResult.setRetCode(errorCode);
-		if(StringUtils.isEmpty(e.getMessage()))
-		{
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String errorStr = errors.toString();
-			if(!StringUtils.isEmpty(errorStr))
-			{
-				processResult.setRetMsg(errorStr.substring(0,1000));
-			}
-		}
-		else
-		{
 		
-			StringWriter errors = new StringWriter();
-			e.printStackTrace(new PrintWriter(errors));
-			String errorStr = errors.toString();
-			if(!StringUtils.isEmpty(errorStr))
-			{
-				processResult.setRetMsg(errorStr.substring(0,1000));
-			}
+		String errorMsg = getStringFromException(e);
+		if(!StringUtils.isEmpty(errorMsg))
+		{
+			processResult.setRetMsg(errorMsg.substring(0,1000));
 		}
+		
 	    return processResult;
 	}
 	
+	
+	public static String getStringFromException(Exception e)
+	{
+		
+		if(e!=null)
+		{
+			StringWriter errors = new StringWriter();
+			e.printStackTrace(new PrintWriter(errors));
+			String errorStr = errors.toString();
+			return errorStr;
+		}
+		return "";
+	}
 	public static ProcessResult getErrorResponse(int errorCode,String errorMsg)
 	{		
 		ProcessResult processResult = new ProcessResult();

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ import com.xinwei.orderDb.Const.OrderDbConst;
 import com.xinwei.orderDb.domain.OrderFlow;
 import com.xinwei.orderDb.domain.OrderMain;
 import com.xinwei.orderDb.domain.OrderMainContext;
+import org.slf4j.Logger;
 
 @RestController
 @RequestMapping("/orderGateway")
@@ -30,7 +32,8 @@ public class OrderManagerController {
 	private OrderManagerService orderManagerService;
 	@Resource(name="dbOrderTaskService")
 	private DbOrderTaskService dbOrderTaskService;
-
+	 private Logger logger = LoggerFactory.getLogger(getClass());
+	 
 	@RequestMapping(method = RequestMethod.POST, value = "/{category}/{dbId}/{orderId}/createOrder")
 	public ProcessResult addOrderMain(@PathVariable String category, @PathVariable String dbId,
 			@PathVariable String orderId, @RequestBody OrderMainContext orderMain) {
@@ -76,6 +79,8 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			logger.error(ControllerUtils.getStringFromException(e));
+			
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 		}
 		return processResult;
@@ -92,6 +97,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			logger.error(ControllerUtils.getStringFromException(e));
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 			
 		}
