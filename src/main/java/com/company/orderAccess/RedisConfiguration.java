@@ -22,7 +22,7 @@ public class RedisConfiguration {
 	        ObjectMapper objectMapper = new ObjectMapper();
 	        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
 	        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-
+	        
 	        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 	        
 	        // 设置value的序列化规则和 key的序列化规则

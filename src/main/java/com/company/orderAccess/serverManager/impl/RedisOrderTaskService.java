@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.company.orderTask.domain.OrderTaskRunInfo;
+import com.xinwei.nnl.common.util.JsonUtil;
 import com.xinwei.orderDb.domain.OrderMain;
 import com.xinwei.orderDb.domain.OrderMainContext;
 @Service("redisOrderTaskService")
@@ -102,9 +103,15 @@ public class RedisOrderTaskService {
     public boolean putOrderTaskToQuene(OrderTaskRunInfo orderTaskInfo)
     {
     	String key = this.getOrderTaskQueneKey(orderTaskQueneName,orderTaskInfo.getCatetory(),orderTaskInfo.getCurrentStep());
-    	this.redisTemplate.opsForList().rightPush(key, orderTaskInfo);
+    	this.redisTemplate.opsForList().rightPush(key, serializeRedis(orderTaskInfo));
 		return true;
     }
+    
+    private String serializeRedis(Object t)
+    {
+    	return JsonUtil.toJson(t);
+    }
+    
     
     /**
      * 如果任务成功，删除调度队列中的重做任务；
@@ -176,7 +183,9 @@ public class RedisOrderTaskService {
 				try {
 					OrderTaskRunInfo orderTaskRunInfo=null;
 					try {
-						orderTaskRunInfo = (OrderTaskRunInfo)entry.getValue();
+						
+						String str = (String)entry.getValue();
+						  orderTaskRunInfo = JsonUtil.fromJson(str, OrderTaskRunInfo.class);
 					} catch (Exception e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -194,7 +203,7 @@ public class RedisOrderTaskService {
 						//如果时间已经过期,放入重做队列，会通知运维任务过期
 						if(orderTaskRunInfo.getExpireTime()>0 && System.currentTimeMillis() - orderTaskRunInfo.getExpireTime()>=0)
 						{
-							this.redisTemplate.opsForList().rightPush(key, orderTaskRunInfo);
+							this.redisTemplate.opsForList().rightPush(key, this.serializeRedis(orderTaskRunInfo));
 							timeOutRedoList.add((String)entry.getKey());
 							log.debug("redo task: add to timeout list key:" + orderTaskRunInfo.toString());
 							
@@ -202,7 +211,7 @@ public class RedisOrderTaskService {
 						//判断是否时间超时需要重做
 						else if(System.currentTimeMillis() - orderTaskRunInfo.getRunTime() >=timeoutMills)
 						{
-							long size = this.redisTemplate.opsForList().rightPush(key, orderTaskRunInfo);
+							long size = this.redisTemplate.opsForList().rightPush(key, serializeRedis(orderTaskRunInfo));
 							timeOutRedoList.add((String)entry.getKey());
 							log.debug("redo task: need to redo:" + size + ":" + orderTaskRunInfo.toString());
 						}
@@ -283,7 +292,8 @@ public class RedisOrderTaskService {
 				//从队列任务中获取
 				OrderTaskRunInfo orderTaskInfo=null;
 				try {
-					orderTaskInfo = (OrderTaskRunInfo)this.redisTemplate.opsForList().index(key, 0);
+					String str = (String)this.redisTemplate.opsForList().index(key, 0);
+					orderTaskInfo = JsonUtil.fromJson(str, OrderTaskRunInfo.class);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -320,7 +330,7 @@ public class RedisOrderTaskService {
 						runTimes++;
 						redoOrderTaskInfo.setRuntimes(runTimes);
 						log.debug("get orderTask start put :" + keyOrderRedo + ":" + getOrderTaskKey(redoOrderTaskInfo) + ":" + redoOrderTaskInfo.toString());
-						redisTemplate.opsForHash().put(keyOrderRedo, getOrderTaskKey(redoOrderTaskInfo), redoOrderTaskInfo);
+						redisTemplate.opsForHash().put(keyOrderRedo, getOrderTaskKey(redoOrderTaskInfo), serializeRedis(redoOrderTaskInfo));
 						log.debug("get orderTask end put :" + keyOrderRedo + ":" + getOrderTaskKey(redoOrderTaskInfo) + ":" + redoOrderTaskInfo.toString());
 						
 						//map.put(this.getOrderTaskKey(redoOrderTaskInfo), redoOrderTaskInfo);
