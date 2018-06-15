@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
-
+import org.springframework.cloud.sleuth.sampler.AlwaysSampler;
 
 
 @Configuration
@@ -64,6 +64,12 @@ public class RestConfiguration {
         restTemplate.setErrorHandler(new DefaultResponseErrorHandler());
         return restTemplate;
     }
+    
+    @Bean
+	public AlwaysSampler defaultSampler() {
+		return new AlwaysSampler();
+	}
+    
     @Bean
     public HttpComponentsClientHttpRequestFactory clientHttpRequestFactory() {
         try {
