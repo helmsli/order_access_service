@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
@@ -15,13 +16,13 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @SpringBootApplication
 @Configuration
 @EnableAutoConfiguration
-@EnableEurekaClient
+@EnableDiscoveryClient
 //@EnableRedisHttpSession
 //@EnableRedisHttpSession 
 @ComponentScan ("com.company.orderAccess")
 //@MapperScan ("com.company.security.mapper")
 //@ImportResource ({ "classpath:hessian/hessian-client.xml", "classpath:hessian/hessian-server.xml" })
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 86400*30)
+//@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 86400*30)
 public class OrderAccessApplication {
     public static  ApplicationContext  app = null;
 	public static void main(String[] args) {

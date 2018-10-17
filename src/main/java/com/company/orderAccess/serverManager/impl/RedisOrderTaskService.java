@@ -492,7 +492,7 @@ public class RedisOrderTaskService {
 		return false;
 	}
 	
-	public boolean putOrderContextToCache(String category,String orderId,String key,String context)
+	private boolean putOrderContextToCacheOnce(String category,String orderId,String key,String context)
 	{
 		try {
 			if(!StringUtils.isEmpty(context))
@@ -504,6 +504,24 @@ public class RedisOrderTaskService {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			log.error("orderid:" + orderId + " key:" + key + " context: " +context , e);
+		}
+		return false;
+	}
+	public boolean putOrderContextToCache(String category,String orderId,String key,String context)
+	{
+		for(int i=0;i<3;i++)
+		{
+			if(putOrderContextToCacheOnce(category,orderId,key,context))
+			{
+				return true;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return false;
 	}

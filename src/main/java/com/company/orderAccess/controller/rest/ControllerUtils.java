@@ -23,9 +23,17 @@ public class ControllerUtils {
 		String errorMsg = getStringFromException(e);
 		if(!StringUtils.isEmpty(errorMsg))
 		{
-			processResult.setRetMsg(errorMsg.substring(0,1000));
-		}
+			if(errorMsg.length()>1000)
+			{
+				processResult.setRetMsg(errorMsg.substring(0,1000));
 		
+			}
+			else
+			{
+				processResult.setRetMsg(errorMsg);
+				
+			}
+		}
 	    return processResult;
 	}
 	

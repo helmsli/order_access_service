@@ -1,6 +1,6 @@
 spring:
   application:
-    name: order_access
+    name: order-access
   cloud:
     config:
       profile: dev

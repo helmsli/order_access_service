@@ -43,6 +43,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			logger.error("", e);
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 			
 		}
@@ -62,6 +63,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			logger.error("", e);
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 			
 		}
@@ -97,6 +99,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			
 			logger.error(ControllerUtils.getStringFromException(e));
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 			
@@ -113,6 +116,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			logger.error("", e);
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 			
 		}
@@ -133,6 +137,7 @@ public class OrderManagerController {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			logger.error("", e);
 			return ControllerUtils.getFromResponse(e, OrderAccessConst.RESULT_Error_Fail, processResult);
 		}
 		return processResult;
