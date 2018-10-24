@@ -500,6 +500,34 @@ public class RedisOrderTaskService {
 				String orderKey = getOrderContextKey(category,orderId,key);
 				this.redisTemplate.opsForValue().set(orderKey,context ,orderCacheExpireHours,TimeUnit.HOURS);
 			}
+			else
+			{
+				log.error("orderid:" + orderId + " key:" + key + " context is null");
+			}
+			return true;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			log.error("orderid:" + orderId + " key:" + key + " context: " +context , e);
+		}
+		return false;
+	}
+	private boolean putOrderContextToCacheOnceIfAbsent(String category,String orderId,String key,String context)
+	{
+		try {
+			if(!StringUtils.isEmpty(context))
+			{
+				String orderKey = getOrderContextKey(category,orderId,key);
+				if(this.redisTemplate.opsForValue().setIfAbsent(orderKey,context))
+				{
+					this.redisTemplate.expire( orderKey,orderCacheExpireHours,TimeUnit.HOURS);
+				}
+				
+			}
+			else
+			{
+				log.error("orderid:" + orderId + " key:" + key + " context is null");
+			}
 			return true;
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -518,7 +546,24 @@ public class RedisOrderTaskService {
 			}
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return false;
+	}
+	public boolean putOrderContextToCacheIfAbsent(String category,String orderId,String key,String context)
+	{
+		for(int i=0;i<3;i++)
+		{
+			if(putOrderContextToCacheOnceIfAbsent(category,orderId,key,context))
+			{
+				return true;
+			}
+			try {
+				Thread.sleep(100);
+			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

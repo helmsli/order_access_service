@@ -2,6 +2,7 @@ package com.company.orderAccess.serverManager.impl;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -206,11 +207,12 @@ public class DbOrderTaskService {
 		Map<String, String> maps = new HashMap<String, String>();
 		boolean isNeedQueryDb = false;
 		// 从redis中获取
+		List<String>querList = new ArrayList<String>();
 		for (int i = 0; i < keys.size(); i++) {
 			String value = this.redisOrderTaskService.getOrderContextFromCache(category, orderId, keys.get(i));
 			if (StringUtils.isEmpty(value)) {
 				isNeedQueryDb = true;
-				break;
+				querList.add(keys.get(i));
 			} else {
 				maps.put(keys.get(i), value);
 			}
@@ -219,25 +221,23 @@ public class DbOrderTaskService {
 		processResult.setResponseInfo(maps);
 		if (isNeedQueryDb) {
 			// 从数据库查询
-			processResult = this.selectOrderContextDataFromDb(category, orderId, keys);
+			ProcessResult ret = this.selectOrderContextDataFromDb(category, orderId, querList);
 			try {
-				if(processResult.getRetCode()==0)
+				if(ret.getRetCode()==0)
 				{
-					maps =(Map<String, String>) processResult.getResponseInfo();
+					
+					Map<String,String>queryMaps =(Map<String, String>) ret.getResponseInfo();
 					// 更新redis
-					for (Map.Entry<String, String> entry : maps.entrySet()) {
-						redisOrderTaskService.putOrderContextToCache(category, orderId, entry.getKey(), entry.getValue());
+					for (Map.Entry<String, String> entry : queryMaps.entrySet()) {
+						redisOrderTaskService.putOrderContextToCacheIfAbsent(category, orderId, entry.getKey(), entry.getValue());
+						maps.put(entry.getKey(), entry.getValue());
 					}
 				}
-				else if(processResult.getRetCode()==OrderDbConst.RESULT_HandleException)
-				{
-					processResult.setRetCode(OrderDbConst.RESULT_HandleException);
-					
-				}
+				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				processResult.setRetCode(OrderDbConst.RESULT_HandleException);
+				logger.error("",e);
 				
 			}
 		}
